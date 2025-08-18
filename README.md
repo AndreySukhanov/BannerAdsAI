@@ -186,5 +186,3 @@ npm start           # Запуск backend в production
 - [React Documentation](https://react.dev)
 
 ---
-
-Сделано с ❤️ для автоматизации создания рекламных баннеров
