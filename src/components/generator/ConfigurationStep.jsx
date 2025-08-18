@@ -138,6 +138,48 @@ export default function ConfigurationStep({ config, setConfig, onNext }) {
               </Select>
             </div>
 
+            {/* Font Selection */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                <span className="text-indigo-600 font-bold text-lg">Aa</span>
+                Шрифт заголовка
+              </Label>
+              <Select 
+                value={config.font || 'roboto'} 
+                onValueChange={(value) => setConfig({...config, font: value})}
+              >
+                <SelectTrigger className="h-12 text-base border-gray-200 focus:border-indigo-500 rounded-xl">
+                  <SelectValue placeholder="Выберите шрифт" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-gray-200">
+                  <SelectItem value="roboto" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900" style={{fontFamily: 'Roboto, sans-serif'}}>Roboto</div>
+                      <div className="text-sm text-gray-500">Современный, читаемый</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="inter" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900" style={{fontFamily: 'Inter, sans-serif'}}>Inter</div>
+                      <div className="text-sm text-gray-500">Универсальный, чистый</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="montserrat" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900" style={{fontFamily: 'Montserrat, sans-serif'}}>Montserrat</div>
+                      <div className="text-sm text-gray-500">Элегантный, привлекательный</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="opensans" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900" style={{fontFamily: 'Open Sans, sans-serif'}}>Open Sans</div>
+                      <div className="text-sm text-gray-500">Дружелюбный, доступный</div>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <Button 
               type="submit" 
               className="w-full h-14 text-base font-semibold brand-gradient hover:shadow-xl smooth-transition rounded-xl"

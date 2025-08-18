@@ -4,10 +4,10 @@ import { coordinator } from '../agents/coordinator.js';
 // Generate complete banner from URL
 export async function generateBanner(req, res) {
   try {
-    const { url, size, template, uploadedImage } = req.body;
+    const { url, size, template, font, uploadedImage } = req.body;
     
     console.log('=== Multi-Agent Banner Generation ===');
-    console.log('Request:', { url, size, template, hasUploadedImage: !!uploadedImage });
+    console.log('Request:', { url, size, template, font, hasUploadedImage: !!uploadedImage });
     
     if (!url || !size || !template) {
       return res.status(400).json({
@@ -20,6 +20,7 @@ export async function generateBanner(req, res) {
       url,
       size,
       template,
+      font,
       uploadedImage
     });
     
@@ -82,13 +83,14 @@ export async function generateHeadlines(req, res) {
 // Generate banner from selected headline
 export async function generateBannerFromHeadline(req, res) {
   try {
-    const { selectedHeadline, size, template, uploadedImage, webContent, url } = req.body;
+    const { selectedHeadline, size, template, font, uploadedImage, webContent, url } = req.body;
     
     console.log('=== Multi-Agent Banner from Headline ===');
     console.log('Request:', { 
       headline: selectedHeadline?.substring(0, 30) + '...',
       size, 
       template,
+      font,
       hasUploadedImage: !!uploadedImage,
       hasWebContent: !!webContent
     });
@@ -104,6 +106,7 @@ export async function generateBannerFromHeadline(req, res) {
       selectedHeadline,
       size,
       template,
+      font,
       uploadedImage,
       webContent,
       url

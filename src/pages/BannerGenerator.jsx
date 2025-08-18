@@ -16,6 +16,7 @@ export default function BannerGenerator() {
     url: '',
     size: '300x250',
     template: 'blue_white',
+    font: 'roboto',
     selected_headline: '',
     generated_headlines: [],
     banner_urls: [],

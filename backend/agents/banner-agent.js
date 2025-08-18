@@ -4,7 +4,7 @@ export class BannerAgent {
     this.name = 'BannerAgent';
   }
 
-  async createBanners({ headlines, images, uploadedImage, size, template }) {
+  async createBanners({ headlines, images, uploadedImage, size, template, font }) {
     console.log(`[${this.name}] Creating banners with ${headlines.length} headlines and ${images.length} images`);
     
     const banners = [];
@@ -19,6 +19,7 @@ export class BannerAgent {
           imageUrl: uploadedImage.url || uploadedImage,
           size,
           template,
+          font,
           isUploadedImage: true
         });
         
@@ -37,6 +38,7 @@ export class BannerAgent {
         imagePrompt: image.prompt,
         size,
         template,
+        font,
         isUploadedImage: false
       });
       
@@ -48,7 +50,7 @@ export class BannerAgent {
     return banners;
   }
 
-  async createSingleBanner({ id, headline, imageUrl, imagePrompt, size, template, isUploadedImage }) {
+  async createSingleBanner({ id, headline, imageUrl, imagePrompt, size, template, font, isUploadedImage }) {
     try {
       // Parse dimensions
       const [width, height] = size.split('x').map(Number);
@@ -66,7 +68,7 @@ export class BannerAgent {
         
         // Banner composition metadata
         composition: {
-          textOverlay: this.getTextOverlayConfig(template, headline),
+          textOverlay: this.getTextOverlayConfig(template, headline, font),
           imageProcessing: this.getImageProcessingConfig(template),
           colorScheme: this.getColorScheme(template)
         }
@@ -82,12 +84,23 @@ export class BannerAgent {
     }
   }
 
-  getTextOverlayConfig(template, headline) {
+  getFontFamily(fontSelection) {
+    const fontMap = {
+      'roboto': 'Roboto, sans-serif',
+      'inter': 'Inter, sans-serif', 
+      'montserrat': 'Montserrat, sans-serif',
+      'opensans': 'Open Sans, sans-serif'
+    };
+    
+    return fontMap[fontSelection] || fontMap['roboto'];
+  }
+
+  getTextOverlayConfig(template, headline, font = 'roboto') {
     const baseConfig = {
       text: headline,
       maxWidth: 0.9, // 90% of banner width
       fontSize: 'auto', // Auto-calculated based on text length
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: this.getFontFamily(font),
       fontWeight: 'bold',
       textAlign: 'center',
       wordWrap: true,

@@ -4,7 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, RefreshCw, Check, ArrowRight, Target, Edit3, Save, X } from "lucide-react";
+import { Loader2, RefreshCw, Check, ArrowRight, Target, Edit3, Save, X, Type } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateHeadlines as generateHeadlinesMultiAgent } from "@/api/multi-agent-client";
 
@@ -296,6 +298,61 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Font Selection */}
+          {selectedHeadline && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100"
+            >
+              <div className="flex items-center gap-3">
+                <Type className="w-5 h-5 text-indigo-600" />
+                <Label className="text-base font-semibold text-gray-900">
+                  Выберите шрифт для заголовка
+                </Label>
+              </div>
+              
+              <Select 
+                value={config.font || 'roboto'} 
+                onValueChange={(value) => setConfig({...config, font: value})}
+              >
+                <SelectTrigger className="h-12 text-base border-gray-200 focus:border-indigo-500 rounded-xl bg-white">
+                  <SelectValue placeholder="Выберите шрифт" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-gray-200">
+                  <SelectItem value="roboto" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900" style={{fontFamily: 'Roboto, sans-serif'}}>Roboto</div>
+                      <div className="text-sm text-gray-500">Современный, читаемый</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="inter" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900" style={{fontFamily: 'Inter, sans-serif'}}>Inter</div>
+                      <div className="text-sm text-gray-500">Универсальный, чистый</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="montserrat" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900" style={{fontFamily: 'Montserrat, sans-serif'}}>Montserrat</div>
+                      <div className="text-sm text-gray-500">Элегантный, привлекательный</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="opensans" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900" style={{fontFamily: 'Open Sans, sans-serif'}}>Open Sans</div>
+                      <div className="text-sm text-gray-500">Дружелюбный, доступный</div>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <p className="text-sm text-gray-600">
+                Выбранный шрифт будет применен к заголовку на всех баннерах
+              </p>
+            </motion.div>
+          )}
 
           <div className="flex gap-4">
             <Button

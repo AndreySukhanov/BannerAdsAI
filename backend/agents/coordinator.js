@@ -62,7 +62,8 @@ export class CoordinatorAgent {
         images: images,
         uploadedImage: request.uploadedImage,
         size: request.size,
-        template: request.template
+        template: request.template,
+        font: request.font
       });
 
       const result = {
@@ -150,7 +151,8 @@ export class CoordinatorAgent {
         images: images,
         uploadedImage: request.uploadedImage,
         size: request.size,
-        template: request.template
+        template: request.template,
+        font: request.font
       });
 
       const result = { taskId, banners, images };

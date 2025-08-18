@@ -95,6 +95,7 @@ export async function generateCompleteBanner(config) {
       url: config.url,
       size: config.size,
       template: config.template,
+      font: config.font,
       hasUploadedImage: !!config.uploadedImage
     });
     
@@ -104,6 +105,7 @@ export async function generateCompleteBanner(config) {
         url: config.url,
         size: config.size,
         template: config.template,
+        font: config.font,
         uploadedImage: config.uploadedImage
       })
     });
@@ -132,7 +134,8 @@ export async function generateBannerFromHeadline(config) {
     console.log('[MultiAgent] Generating banner from headline:', {
       headline: config.selectedHeadline?.substring(0, 30) + '...',
       size: config.size,
-      template: config.template
+      template: config.template,
+      font: config.font
     });
     
     const response = await apiRequest('/api/agents/generate-banner-from-headline', {
@@ -141,6 +144,7 @@ export async function generateBannerFromHeadline(config) {
         selectedHeadline: config.selectedHeadline,
         size: config.size,
         template: config.template,
+        font: config.font,
         uploadedImage: config.uploadedImage,
         webContent: config.webContent,
         url: config.url
