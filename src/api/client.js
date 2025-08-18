@@ -1,5 +1,5 @@
 // API Client for Banner Backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3006';
 
 class APIError extends Error {
   constructor(message, status, response) {

@@ -1,5 +1,5 @@
 // Multi-Agent API Client for Banner Generation
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3006';
 
 class MultiAgentAPIError extends Error {
   constructor(message, status, response) {
