@@ -90,36 +90,7 @@ export default function BannerPreview({
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;
 
-    // Advanced word wrapping with hyphenation
-    const hyphenateWord = (word) => {
-      // Simple Russian/English hyphenation rules
-      if (word.length < 6) return [word]; // Don't hyphenate short words
-      
-      // Common hyphenation patterns for Russian
-      const patterns = [
-        /^(.{3,})([аеиоуыэюя].{2,})$/i, // vowel + 2+ chars
-        /^(.{4,})(ние|тие|сие)$/i,     // common endings
-        /^(.{3,})(ство|тель)$/i,       // common endings
-        /^(.{3,})(ция|сия)$/i,         // -ция, -сия
-      ];
-      
-      for (const pattern of patterns) {
-        const match = word.match(pattern);
-        if (match) {
-          return [match[1] + '-', match[2]];
-        }
-      }
-      
-      // Fallback: split longer words in middle
-      if (word.length > 8) {
-        const mid = Math.floor(word.length / 2);
-        return [word.slice(0, mid) + '-', word.slice(mid)];
-      }
-      
-      return [word];
-    };
-
-    // Smart word wrapping with hyphenation
+    // Simple word wrapping without hyphenation
     const words = headline.split(' ');
     const lines = [];
     let currentLine = '';
@@ -129,27 +100,8 @@ export default function BannerPreview({
       const metrics = ctx.measureText(testLine);
       
       if (metrics.width > maxWidth && currentLine) {
-        // Try to hyphenate the word if it's too long
-        const hyphenated = hyphenateWord(word);
-        
-        if (hyphenated.length > 1) {
-          // Try fitting the first part with hyphen
-          const testWithHyphen = currentLine + (currentLine ? ' ' : '') + hyphenated[0];
-          const hyphenMetrics = ctx.measureText(testWithHyphen);
-          
-          if (hyphenMetrics.width <= maxWidth) {
-            lines.push(testWithHyphen);
-            currentLine = hyphenated[1];
-          } else {
-            // Even with hyphenation doesn't fit, break line
-            lines.push(currentLine);
-            currentLine = word;
-          }
-        } else {
-          // Word can't be hyphenated, break line
-          lines.push(currentLine);
-          currentLine = word;
-        }
+        lines.push(currentLine);
+        currentLine = word;
       } else {
         currentLine = testLine;
       }
@@ -176,23 +128,8 @@ export default function BannerPreview({
         const metrics = ctx.measureText(testLine);
         
         if (metrics.width > newMaxWidth && newCurrentLine) {
-          const hyphenated = hyphenateWord(word);
-          
-          if (hyphenated.length > 1) {
-            const testWithHyphen = newCurrentLine + (newCurrentLine ? ' ' : '') + hyphenated[0];
-            const hyphenMetrics = ctx.measureText(testWithHyphen);
-            
-            if (hyphenMetrics.width <= newMaxWidth) {
-              newLines.push(testWithHyphen);
-              newCurrentLine = hyphenated[1];
-            } else {
-              newLines.push(newCurrentLine);
-              newCurrentLine = word;
-            }
-          } else {
-            newLines.push(newCurrentLine);
-            newCurrentLine = word;
-          }
+          newLines.push(newCurrentLine);
+          newCurrentLine = word;
         } else {
           newCurrentLine = testLine;
         }
