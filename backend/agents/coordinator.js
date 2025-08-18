@@ -29,6 +29,16 @@ export class CoordinatorAgent {
       console.log(`[Coordinator] Phase 1: Web content analysis`);
       const webContent = await this.agents.webscraping.analyzeUrl(request.url);
       
+      // Check if web scraping failed and throw appropriate error
+      if (webContent.isFallback && webContent.error) {
+        const errorMessage = this.getUserFriendlyErrorMessage(webContent.error);
+        const error = new Error(errorMessage);
+        error.code = 'SCRAPING_FAILED';
+        error.errorType = webContent.error.type;
+        error.originalError = webContent.error.message;
+        throw error;
+      }
+      
       // Phase 2: Generate headlines based on content and requirements
       console.log(`[Coordinator] Phase 2: Headline generation`);
       const headlines = await this.agents.headline.generateHeadlines({
@@ -87,6 +97,17 @@ export class CoordinatorAgent {
       console.log(`[Coordinator] Starting headline generation task ${taskId}`);
       
       const webContent = await this.agents.webscraping.analyzeUrl(request.url);
+      
+      // Check if web scraping failed and throw appropriate error
+      if (webContent.isFallback && webContent.error) {
+        const errorMessage = this.getUserFriendlyErrorMessage(webContent.error);
+        const error = new Error(errorMessage);
+        error.code = 'SCRAPING_FAILED';
+        error.errorType = webContent.error.type;
+        error.originalError = webContent.error.message;
+        throw error;
+      }
+      
       const headlines = await this.agents.headline.generateHeadlines({
         content: webContent,
         style: request.template,
@@ -194,6 +215,21 @@ export class CoordinatorAgent {
         .filter(t => t.duration)
         .reduce((avg, t, _, arr) => avg + t.duration / arr.length, 0)
     };
+  }
+
+  getUserFriendlyErrorMessage(error) {
+    const errorMessages = {
+      'DNS_ERROR': 'Не удалось найти сайт. Проверьте правильность URL или попробуйте позже.',
+      'TIMEOUT': 'Сайт слишком долго отвечает. Попробуйте другую ссылку или повторите позже.',
+      'CONNECTION_REFUSED': 'Сайт недоступен. Проверьте URL или попробуйте другой сайт.',
+      'FORBIDDEN': 'Доступ к сайту запрещен. Этот сайт блокирует автоматические запросы.',
+      'NOT_FOUND': 'Страница не найдена. Проверьте правильность ссылки.',
+      'SERVER_ERROR': 'На сайте произошла ошибка сервера. Попробуйте позже.',
+      'SSL_ERROR': 'Проблема с безопасным соединением. Проверьте правильность URL.',
+      'UNKNOWN_ERROR': 'Не удалось загрузить страницу. Попробуйте другую ссылку.'
+    };
+
+    return errorMessages[error.type] || errorMessages['UNKNOWN_ERROR'];
   }
 }
 

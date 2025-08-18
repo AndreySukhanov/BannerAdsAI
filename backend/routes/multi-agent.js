@@ -44,10 +44,12 @@ export async function generateBanner(req, res) {
 // Generate headlines only
 export async function generateHeadlines(req, res) {
   try {
-    const { url, template } = req.body;
-    
     console.log('=== Multi-Agent Headlines Generation ===');
-    console.log('Request:', { url, template });
+    console.log('Raw request body:', req.body);
+    console.log('Request headers:', req.headers);
+    
+    const { url, template } = req.body;
+    console.log('Parsed request:', { url, template });
     
     if (!url || !template) {
       return res.status(400).json({

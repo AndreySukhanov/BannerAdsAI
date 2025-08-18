@@ -1,7 +1,14 @@
 // Image generation utilities for multi-agent system
 import fetch from 'node-fetch';
+import { mockImageGeneration } from './mock-api.js';
 
 export async function callOpenAIImageGeneration(prompt, options = {}) {
+  // Проверяем режим mock API
+  if (process.env.USE_MOCK_API === 'true') {
+    console.log('[OpenAI] Using mock image generation');
+    return await mockImageGeneration(prompt);
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error('OpenAI API key not configured');

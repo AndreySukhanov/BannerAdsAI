@@ -37,6 +37,13 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
       console.log('Headlines generated successfully:', cleanHeadlines);
     } catch (error) {
       console.error('Ошибка генерации заголовков:', error);
+      
+      // Show user-friendly error message
+      const errorMessage = error.message.includes('Failed to generate headlines:') 
+        ? error.message.replace('Failed to generate headlines: ', '')
+        : 'Произошла ошибка при генерации заголовков. Проверьте ссылку и попробуйте снова.';
+      
+      alert(errorMessage);
     }
     setIsGenerating(false);
   }, [config, setConfig]);

@@ -28,6 +28,8 @@ async function apiRequest(endpoint, options = {}) {
   
   try {
     console.log(`[MultiAgent] ${config.method || 'GET'} ${endpoint}`);
+    console.log(`[MultiAgent] Request body:`, config.body);
+    console.log(`[MultiAgent] Request headers:`, config.headers);
     const response = await fetch(url, config);
     
     if (!response.ok) {

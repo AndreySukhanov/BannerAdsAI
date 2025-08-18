@@ -38,8 +38,11 @@ export class WebScrapingAgent {
     } catch (error) {
       console.error(`[${this.name}] Error analyzing URL ${url}:`, error.message);
       
-      // Return fallback content based on URL
-      return this.generateFallbackContent(url);
+      // Determine error type
+      const errorType = this.categorizeError(error);
+      
+      // Return fallback content with error info
+      return this.generateFallbackContent(url, error, errorType);
     }
   }
 
@@ -220,7 +223,35 @@ export class WebScrapingAgent {
     return maxLang;
   }
 
-  generateFallbackContent(url) {
+  categorizeError(error) {
+    const message = error.message?.toLowerCase() || '';
+    
+    if (message.includes('enotfound') || message.includes('dns')) {
+      return 'DNS_ERROR';
+    }
+    if (message.includes('timeout') || message.includes('etimedout')) {
+      return 'TIMEOUT';
+    }
+    if (message.includes('econnrefused') || message.includes('connection refused')) {
+      return 'CONNECTION_REFUSED';
+    }
+    if (message.includes('403') || message.includes('forbidden')) {
+      return 'FORBIDDEN';
+    }
+    if (message.includes('404') || message.includes('not found')) {
+      return 'NOT_FOUND';
+    }
+    if (message.includes('500') || message.includes('internal server error')) {
+      return 'SERVER_ERROR';
+    }
+    if (message.includes('ssl') || message.includes('certificate')) {
+      return 'SSL_ERROR';
+    }
+    
+    return 'UNKNOWN_ERROR';
+  }
+
+  generateFallbackContent(url, error = null, errorType = null) {
     console.log(`[${this.name}] Generating fallback content for ${url}`);
     
     // Extract domain and path info
@@ -245,7 +276,12 @@ export class WebScrapingAgent {
       detectedLanguage: 'ru',
       wordCount: 25,
       extractedAt: new Date().toISOString(),
-      isFallback: true
+      isFallback: true,
+      error: error ? {
+        message: error.message,
+        type: errorType,
+        timestamp: new Date().toISOString()
+      } : null
     };
   }
 }
