@@ -97,7 +97,7 @@ export class HeadlineAgent {
 
 ТРЕБОВАНИЯ:
 - Стиль: ${templateStyle}
-- Каждый заголовок максимум 60 символов
+- Каждый заголовок 90-100 символов (стремись к 100)
 - 3 разных подхода:
   1. ПРЯМАЯ ВЫГОДА - что получит клиент
   2. РЕШЕНИЕ ПРОБЛЕМЫ - какую проблему решаем
@@ -116,7 +116,7 @@ Titres principaux: ${content.headings.map(h => h.text).join(', ')}
 
 EXIGENCES:
 - Style: ${templateStyle}
-- Chaque titre maximum 60 caractères
+- Chaque titre 90-100 caractères (visez 100)
 - 3 approches différentes:
   1. AVANTAGE DIRECT - ce que le client obtiendra
   2. RÉSOLUTION DE PROBLÈME - quel problème nous résolvons
@@ -135,7 +135,7 @@ Hauptüberschriften: ${content.headings.map(h => h.text).join(', ')}
 
 ANFORDERUNGEN:
 - Stil: ${templateStyle}
-- Jede Schlagzeile maximal 60 Zeichen
+- Jede Schlagzeile 90-100 Zeichen (streben Sie 100 an)
 - 3 verschiedene Ansätze:
   1. DIREKTER NUTZEN - was der Kunde erhalten wird
   2. PROBLEMLÖSUNG - welches Problem wir lösen
@@ -154,7 +154,7 @@ Títulos principales: ${content.headings.map(h => h.text).join(', ')}
 
 REQUISITOS:
 - Estilo: ${templateStyle}
-- Cada titular máximo 60 caracteres
+- Cada titular 90-100 caracteres (apunte a 100)
 - 3 enfoques diferentes:
   1. BENEFICIO DIRECTO - lo que obtendrá el cliente
   2. SOLUCIÓN DE PROBLEMAS - qué problema resolvemos
@@ -173,7 +173,7 @@ Main headings: ${content.headings.map(h => h.text).join(', ')}
 
 REQUIREMENTS:
 - Style: ${templateStyle}
-- Each headline maximum 60 characters
+- Each headline 90-100 characters (aim for 100)
 - 3 different approaches:
   1. DIRECT BENEFIT - what the client will get
   2. PROBLEM SOLVING - what problem we solve
@@ -199,7 +199,7 @@ Return ONLY 3 headlines, each on a new line, WITHOUT numbering or additional tex
           .trim()
           .toUpperCase();
       })
-      .filter(line => line.length > 0 && line.length <= 80)
+      .filter(line => line.length > 0 && line.length <= 110)
       .slice(0, 3);
   }
 

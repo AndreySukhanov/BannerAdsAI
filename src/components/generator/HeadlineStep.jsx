@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, RefreshCw, Check, ArrowRight, Target } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, RefreshCw, Check, ArrowRight, Target, Edit3, Save, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateHeadlines as generateHeadlinesMultiAgent } from "@/api/multi-agent-client";
 
@@ -11,6 +12,8 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [headlines, setHeadlines] = useState(config.generated_headlines || []);
   const [selectedHeadline, setSelectedHeadline] = useState(config.selected_headline || '');
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editedHeadline, setEditedHeadline] = useState('');
 
   const generateHeadlines = useCallback(async () => {
     setIsGenerating(true);
@@ -60,6 +63,41 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
       ...config,
       selected_headline: headline
     });
+  };
+
+  const startEditing = (index, headline) => {
+    setEditingIndex(index);
+    setEditedHeadline(headline);
+  };
+
+  const saveEdit = (index) => {
+    const updatedHeadlines = [...headlines];
+    updatedHeadlines[index] = editedHeadline.toUpperCase();
+    setHeadlines(updatedHeadlines);
+    
+    // Update config
+    setConfig({
+      ...config,
+      generated_headlines: updatedHeadlines
+    });
+    
+    // If this was the selected headline, update it too
+    if (selectedHeadline === headlines[index]) {
+      setSelectedHeadline(editedHeadline.toUpperCase());
+      setConfig({
+        ...config,
+        generated_headlines: updatedHeadlines,
+        selected_headline: editedHeadline.toUpperCase()
+      });
+    }
+    
+    setEditingIndex(null);
+    setEditedHeadline('');
+  };
+
+  const cancelEdit = () => {
+    setEditingIndex(null);
+    setEditedHeadline('');
   };
 
   const getClickabilityScore = (headline) => {
@@ -121,7 +159,8 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
               <span className="font-semibold text-blue-900">Заголовки в разных стилях</span>
             </div>
             <p className="text-sm text-blue-700">
-              Каждый заголовок использует свой маркетинговый подход для максимальной эффективности
+              Каждый заголовок использует свой маркетинговый подход для максимальной эффективности.
+              Нажмите на иконку редактирования, чтобы изменить текст.
             </p>
           </div>
 
@@ -160,7 +199,7 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      onClick={() => selectHeadline(headline)}
+                      onClick={() => editingIndex !== index && selectHeadline(headline)}
                       className={`w-full p-5 rounded-xl border-2 text-left transition-all hover:shadow-lg ${
                         selectedHeadline === headline
                           ? 'border-blue-500 bg-blue-50 shadow-lg'
@@ -176,23 +215,79 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
                           {selectedHeadline === headline && <Check className="w-4 h-4 text-white" />}
                         </div>
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900 text-base leading-tight mb-3">
-                            {headline}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <span className="text-sm text-gray-500">{headline.length}/100 символов</span>
-                              <Badge className={`${clickability.color} font-medium`}>
-                                {clickability.label}
-                              </Badge>
-                              <Badge className={`${style.color} font-medium`}>
-                                {style.label}
-                              </Badge>
+                          {editingIndex === index ? (
+                            <div className="space-y-3">
+                              <Input
+                                value={editedHeadline}
+                                onChange={(e) => setEditedHeadline(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && editedHeadline.trim()) {
+                                    saveEdit(index);
+                                  }
+                                  if (e.key === 'Escape') {
+                                    cancelEdit();
+                                  }
+                                }}
+                                placeholder="Введите заголовок..."
+                                className="font-medium text-base"
+                                autoFocus
+                                maxLength={100}
+                              />
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => saveEdit(index)}
+                                  disabled={!editedHeadline.trim()}
+                                  className="h-8"
+                                >
+                                  <Save className="w-3 h-3 mr-1" />
+                                  Сохранить
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelEdit}
+                                  className="h-8"
+                                >
+                                  <X className="w-3 h-3 mr-1" />
+                                  Отмена
+                                </Button>
+                              </div>
                             </div>
-                            <Badge variant="outline" className="text-xs">
-                              Вариант {index + 1}
-                            </Badge>
-                          </div>
+                          ) : (
+                            <>
+                              <div className="flex items-start justify-between mb-3">
+                                <p className="font-medium text-gray-900 text-base leading-tight flex-1 pr-2">
+                                  {headline}
+                                </p>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    startEditing(index, headline);
+                                  }}
+                                  className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                                >
+                                  <Edit3 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                  <span className="text-sm text-gray-500">{headline.length}/100 символов</span>
+                                  <Badge className={`${clickability.color} font-medium`}>
+                                    {clickability.label}
+                                  </Badge>
+                                  <Badge className={`${style.color} font-medium`}>
+                                    {style.label}
+                                  </Badge>
+                                </div>
+                                <Badge variant="outline" className="text-xs">
+                                  Вариант {index + 1}
+                                </Badge>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </motion.button>
