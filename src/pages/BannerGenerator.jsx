@@ -17,6 +17,7 @@ export default function BannerGenerator() {
     size: '300x250',
     template: 'blue_white',
     font: 'roboto',
+    imageModel: 'recraft-v3',
     selected_headline: '',
     generated_headlines: [],
     banner_urls: [],

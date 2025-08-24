@@ -106,7 +106,8 @@ export async function generateCompleteBanner(config) {
         size: config.size,
         template: config.template,
         font: config.font,
-        uploadedImage: config.uploadedImage
+        uploadedImage: config.uploadedImage,
+        imageModel: config.imageModel
       })
     });
     
@@ -147,7 +148,8 @@ export async function generateBannerFromHeadline(config) {
         font: config.font,
         uploadedImage: config.uploadedImage,
         webContent: config.webContent,
-        url: config.url
+        url: config.url,
+        imageModel: config.imageModel
       })
     });
     

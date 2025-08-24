@@ -1,14 +1,14 @@
-// Image Agent - Specialized in generating images and visual content
+// Image Agent - Specialized in generating images and visual content using Recraft.ai
 import { callOpenAI } from '../utils/openai.js';
-import { callOpenAIImageGeneration } from '../utils/image-generation.js';
+import { callRecraftImageGeneration, optimizePromptForRecraft, RECRAFT_MODELS } from '../utils/recraft.js';
 
 export class ImageAgent {
   constructor() {
     this.name = 'ImageAgent';
   }
 
-  async generateImages({ content, headlines, count = 3 }) {
-    console.log(`[${this.name}] Generating ${count} images for content: ${content.title}`);
+  async generateImages({ content, headlines, count = 3, model = 'recraft-v3' }) {
+    console.log(`[${this.name}] Generating ${count} images for content: ${content.title} using model: ${model}`);
     
     try {
       // Step 1: Generate image prompts based on content and headlines
@@ -18,14 +18,20 @@ export class ImageAgent {
       const imagePromises = imagePrompts.map(async (prompt, index) => {
         try {
           const enhancedPrompt = this.enhancePrompt(prompt);
-          const imageResult = await callOpenAIImageGeneration(enhancedPrompt);
+          const optimizedPrompt = optimizePromptForRecraft(enhancedPrompt, model);
+          const imageResult = await callRecraftImageGeneration(optimizedPrompt, model, {
+            size: '1024x1024',
+            n: 1
+          });
           
           return {
             id: index + 1,
             url: imageResult.url,
             prompt: prompt,
             enhancedPrompt: enhancedPrompt,
+            optimizedPrompt: optimizedPrompt,
             revisedPrompt: imageResult.revised_prompt,
+            model: model,
             generatedAt: new Date().toISOString()
           };
         } catch (error) {
@@ -134,5 +140,15 @@ Return ${count} detailed photographic descriptions, one per line, numbered 1-${c
     ];
 
     return fallbackPrompts.slice(0, count);
+  }
+
+  // Get available Recraft.ai models
+  getAvailableModels() {
+    return Object.values(RECRAFT_MODELS);
+  }
+
+  // Validate if model is supported
+  isModelSupported(model) {
+    return Object.keys(RECRAFT_MODELS).includes(model);
   }
 }

@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, RefreshCw, Check, ArrowRight, Target, Edit3, Save, X, Type } from "lucide-react";
+import { Loader2, RefreshCw, Check, ArrowRight, Target, Edit3, Save, X, Type, Image } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
@@ -351,6 +351,61 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
               
               <p className="text-sm text-gray-600">
                 Выбранный шрифт будет применен к заголовку на всех баннерах
+              </p>
+            </motion.div>
+          )}
+
+          {/* Image Model Selection */}
+          {selectedHeadline && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4 p-6 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border border-green-100"
+            >
+              <div className="flex items-center gap-3">
+                <Image className="w-5 h-5 text-green-600" />
+                <Label className="text-base font-semibold text-gray-900">
+                  Выберите модель генерации изображений
+                </Label>
+              </div>
+              
+              <Select 
+                value={config.imageModel || 'recraft-v3'} 
+                onValueChange={(value) => setConfig({...config, imageModel: value})}
+              >
+                <SelectTrigger className="h-12 text-base border-gray-200 focus:border-green-500 rounded-xl bg-white">
+                  <SelectValue placeholder="Выберите модель" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-gray-200">
+                  <SelectItem value="recraft-v3" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900">Recraft V3</div>
+                      <div className="text-sm text-gray-500">Универсальная модель высокого качества</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="realistic" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900">Realistic</div>
+                      <div className="text-sm text-gray-500">Фотореалистичные изображения</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="digital-illustration" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900">Digital Illustration</div>
+                      <div className="text-sm text-gray-500">Яркие рекламные иллюстрации</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="vector-illustration" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900">Vector Art</div>
+                      <div className="text-sm text-gray-500">Чистые геометрические формы</div>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <p className="text-sm text-gray-600">
+                Выбранная модель будет использована для создания фоновых изображений баннеров
               </p>
             </motion.div>
           )}

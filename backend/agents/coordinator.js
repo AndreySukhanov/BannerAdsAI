@@ -52,7 +52,8 @@ export class CoordinatorAgent {
       const images = await this.agents.image.generateImages({
         content: webContent,
         headlines: headlines,
-        count: request.uploadedImage ? 2 : 3
+        count: request.uploadedImage ? 2 : 3,
+        model: request.imageModel || 'recraft-v3'
       });
 
       // Phase 4: Create final banners by combining images and headlines
@@ -143,7 +144,8 @@ export class CoordinatorAgent {
       const images = await this.agents.image.generateImages({
         content: webContent,
         headlines: [request.selectedHeadline],
-        count: request.uploadedImage ? 2 : 3
+        count: request.uploadedImage ? 2 : 3,
+        model: request.imageModel || 'recraft-v3'
       });
 
       const banners = await this.agents.banner.createBanners({
