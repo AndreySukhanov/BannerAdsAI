@@ -79,7 +79,7 @@ export const BannerAdsAI = {
   isReady,
   setUserId: setCurrentUserId,
   getUserId: getUserIdInfo,
-  version: '2.2.0'
+  version: '2.2.1'
 };
 
 // Экспорт в глобальную область для удобства интеграции

@@ -187,7 +187,7 @@ window.BannerAdsAI.getUserId();
 window.BannerAdsAI.isReady();
 
 // Версия API
-console.log(window.BannerAdsAI.version); // "2.2.0"
+console.log(window.BannerAdsAI.version); // "2.2.1"
 ```
 
 ---
