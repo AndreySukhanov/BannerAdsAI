@@ -16,6 +16,8 @@ import {
   generateBanner, 
   generateHeadlines, 
   generateBannerFromHeadline,
+  regenerateHeadlines,
+  regenerateImages,
   getTaskStatus,
   getStats 
 } from './routes/multi-agent.js';
@@ -26,18 +28,39 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config();
 
+// Debug environment variables
+console.log('🔧 Environment Variables:');
+console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'SET' : 'NOT SET');
+console.log('RECRAFT_API_KEY:', process.env.RECRAFT_API_KEY ? 'SET' : 'NOT SET');
+console.log('PORT:', process.env.PORT);
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+// More permissive CORS for development
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175'
-  ],
-  credentials: true
+  origin: true, // Allow all origins in development
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['*'],
+  optionsSuccessStatus: 200
 }));
+
+// Additional CORS middleware to ensure headers are always set
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  next();
+});
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -68,6 +91,8 @@ app.post('/api/upload-file', uploadFile);
 app.post('/api/agents/generate-banner', generateBanner);
 app.post('/api/agents/generate-headlines', generateHeadlines);
 app.post('/api/agents/generate-banner-from-headline', generateBannerFromHeadline);
+app.post('/api/agents/regenerate-headlines', regenerateHeadlines);
+app.post('/api/agents/regenerate-images', regenerateImages);
 app.get('/api/agents/task/:taskId', getTaskStatus);
 app.get('/api/agents/stats', getStats);
 

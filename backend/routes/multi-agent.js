@@ -83,7 +83,7 @@ export async function generateHeadlines(req, res) {
 // Generate banner from selected headline
 export async function generateBannerFromHeadline(req, res) {
   try {
-    const { selectedHeadline, size, template, font, uploadedImage, webContent, url } = req.body;
+    const { selectedHeadline, size, template, font, uploadedImage, webContent, url, imageModel } = req.body;
     
     console.log('=== Multi-Agent Banner from Headline ===');
     console.log('Request:', { 
@@ -91,6 +91,7 @@ export async function generateBannerFromHeadline(req, res) {
       size, 
       template,
       font,
+      imageModel,
       hasUploadedImage: !!uploadedImage,
       hasWebContent: !!webContent
     });
@@ -109,7 +110,8 @@ export async function generateBannerFromHeadline(req, res) {
       font,
       uploadedImage,
       webContent,
-      url
+      url,
+      imageModel
     });
     
     res.json({
@@ -123,6 +125,82 @@ export async function generateBannerFromHeadline(req, res) {
     console.error('Multi-agent banner from headline error:', error);
     res.status(500).json({
       error: 'Banner from headline generation failed',
+      message: error.message
+    });
+  }
+}
+
+// Regenerate headlines with user feedback
+export async function regenerateHeadlines(req, res) {
+  try {
+    console.log('=== Multi-Agent Headlines Regeneration ===');
+    console.log('Request:', req.body);
+    
+    const { url, template, currentHeadlines, userFeedback } = req.body;
+    
+    if (!url || !template || !currentHeadlines || !userFeedback) {
+      return res.status(400).json({
+        error: 'Missing required parameters',
+        required: ['url', 'template', 'currentHeadlines', 'userFeedback']
+      });
+    }
+    
+    const result = await coordinator.regenerateHeadlines({
+      url,
+      template,
+      currentHeadlines,
+      userFeedback
+    });
+    
+    res.json({
+      success: true,
+      taskId: result.taskId,
+      headlines: result.headlines,
+      webContent: result.webContent
+    });
+    
+  } catch (error) {
+    console.error('Multi-agent headlines regeneration error:', error);
+    res.status(500).json({
+      error: 'Headlines regeneration failed',
+      message: error.message
+    });
+  }
+}
+
+// Regenerate images with user feedback
+export async function regenerateImages(req, res) {
+  try {
+    console.log('=== Multi-Agent Images Regeneration ===');
+    console.log('Request:', req.body);
+    
+    const { webContent, headlines, userFeedback, imageModel, count } = req.body;
+    
+    if (!webContent || !headlines || !userFeedback) {
+      return res.status(400).json({
+        error: 'Missing required parameters',
+        required: ['webContent', 'headlines', 'userFeedback']
+      });
+    }
+    
+    const result = await coordinator.regenerateImages({
+      webContent,
+      headlines,
+      userFeedback,
+      imageModel: imageModel || 'recraftv3',
+      count: count || 3
+    });
+    
+    res.json({
+      success: true,
+      taskId: result.taskId,
+      images: result.images
+    });
+    
+  } catch (error) {
+    console.error('Multi-agent images regeneration error:', error);
+    res.status(500).json({
+      error: 'Images regeneration failed',
       message: error.message
     });
   }

@@ -53,7 +53,7 @@ export class CoordinatorAgent {
         content: webContent,
         headlines: headlines,
         count: request.uploadedImage ? 2 : 3,
-        model: request.imageModel || 'recraft-v3'
+        model: request.imageModel || 'recraftv3'
       });
 
       // Phase 4: Create final banners by combining images and headlines
@@ -145,7 +145,7 @@ export class CoordinatorAgent {
         content: webContent,
         headlines: [request.selectedHeadline],
         count: request.uploadedImage ? 2 : 3,
-        model: request.imageModel || 'recraft-v3'
+        model: request.imageModel || 'recraftv3'
       });
 
       const banners = await this.agents.banner.createBanners({
@@ -164,6 +164,66 @@ export class CoordinatorAgent {
 
     } catch (error) {
       console.error(`[Coordinator] Banner from headline task ${taskId} failed:`, error);
+      this.failTask(taskId, error);
+      throw error;
+    }
+  }
+
+  // Regenerate headlines with user feedback
+  async regenerateHeadlines(request) {
+    const taskId = this.createTask(request);
+    
+    try {
+      console.log(`[Coordinator] Starting headlines regeneration task ${taskId}`);
+      
+      // Get web content if not provided
+      let webContent = request.webContent;
+      if (!webContent && request.url) {
+        webContent = await this.agents.webscraping.analyzeUrl(request.url);
+      }
+      
+      // Generate new headlines with user feedback
+      const headlines = await this.agents.headline.regenerateHeadlines({
+        webContent,
+        template: request.template,
+        currentHeadlines: request.currentHeadlines,
+        userFeedback: request.userFeedback
+      });
+      
+      const result = { taskId, headlines, webContent };
+      this.completeTask(taskId, result);
+      
+      return result;
+      
+    } catch (error) {
+      console.error(`[Coordinator] Headlines regeneration task ${taskId} failed:`, error);
+      this.failTask(taskId, error);
+      throw error;
+    }
+  }
+  
+  // Regenerate images with user feedback
+  async regenerateImages(request) {
+    const taskId = this.createTask(request);
+    
+    try {
+      console.log(`[Coordinator] Starting images regeneration task ${taskId}`);
+      
+      const images = await this.agents.image.regenerateImages({
+        content: request.webContent,
+        headlines: request.headlines,
+        userFeedback: request.userFeedback,
+        model: request.imageModel,
+        count: request.count
+      });
+      
+      const result = { taskId, images };
+      this.completeTask(taskId, result);
+      
+      return result;
+      
+    } catch (error) {
+      console.error(`[Coordinator] Images regeneration task ${taskId} failed:`, error);
       this.failTask(taskId, error);
       throw error;
     }

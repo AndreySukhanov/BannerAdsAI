@@ -17,7 +17,7 @@ export default function BannerGenerator() {
     size: '300x250',
     template: 'blue_white',
     font: 'roboto',
-    imageModel: 'recraft-v3',
+    imageModel: 'recraftv3',
     selected_headline: '',
     generated_headlines: [],
     banner_urls: [],
@@ -31,6 +31,7 @@ export default function BannerGenerator() {
       setCurrentStep(3);
     }
   };
+
 
   const handleSizeSelect = (size) => {
     setConfig({ ...config, size });
@@ -48,11 +49,16 @@ export default function BannerGenerator() {
           <HeadlineStep 
             config={config} 
             setConfig={setConfig} 
-            onNext={() => setCurrentStep(5)} 
+            onNext={() => setCurrentStep(5)}
+            onBack={() => setCurrentStep(3)}
           />
         )}
         {currentStep === 5 && (
-          <BannerStep config={config} setConfig={setConfig} />
+          <BannerStep 
+            config={config} 
+            setConfig={setConfig}
+            onBack={() => setCurrentStep(4)}
+          />
         )}
       </div>
     );
@@ -168,7 +174,7 @@ export default function BannerGenerator() {
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="w-16 h-13 bg-gray-200 rounded-lg mx-auto mb-4"></div>
+                  <div className="w-16 h-14 bg-purple-200 rounded-lg mx-auto mb-4"></div>
                   <div className="font-semibold text-gray-900 mb-1">336×280 (Large Rectangle)</div>
                   <div className="text-sm text-gray-500">Большой прямоугольник</div>
                 </button>

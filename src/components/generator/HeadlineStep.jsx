@@ -4,19 +4,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, RefreshCw, Check, ArrowRight, Target, Edit3, Save, X, Type, Image } from "lucide-react";
+import { Loader2, RefreshCw, Check, ArrowRight, ArrowLeft, Target, Edit3, Save, X, Type, Image } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
-import { generateHeadlines as generateHeadlinesMultiAgent } from "@/api/multi-agent-client";
+import { generateHeadlines as generateHeadlinesMultiAgent, regenerateHeadlines } from "@/api/multi-agent-client";
 import BannerPreview from "@/components/ui/BannerPreview";
 
-export default function HeadlineStep({ config, setConfig, onNext }) {
+export default function HeadlineStep({ config, setConfig, onNext, onBack }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [headlines, setHeadlines] = useState(config.generated_headlines || []);
   const [selectedHeadline, setSelectedHeadline] = useState(config.selected_headline || '');
   const [editingIndex, setEditingIndex] = useState(null);
   const [editedHeadline, setEditedHeadline] = useState('');
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [showFeedbackInput, setShowFeedbackInput] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackForHeadline, setFeedbackForHeadline] = useState(null);
 
   const generateHeadlines = useCallback(async () => {
     setIsGenerating(true);
@@ -96,6 +100,47 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
     
     setEditingIndex(null);
     setEditedHeadline('');
+  };
+
+  const handleRegenerateHeadline = async (headlineIndex) => {
+    if (!feedbackText.trim()) {
+      alert('Пожалуйста, введите пожелания для улучшения заголовка');
+      return;
+    }
+
+    setIsRegenerating(true);
+    try {
+      console.log('Regenerating headline with feedback:', feedbackText, 'for headline:', headlines[headlineIndex]);
+      
+      const result = await regenerateHeadlines({
+        url: config.url,
+        template: config.template,
+        currentHeadlines: [headlines[headlineIndex]], // Только один выбранный заголовок
+        userFeedback: feedbackText,
+        webContent: config.webContent
+      });
+      
+      // Extract text from headline objects
+      const cleanHeadlines = result.headlines.map(h => h.text.toUpperCase());
+      
+      setHeadlines(cleanHeadlines);
+      setConfig({
+        ...config,
+        generated_headlines: cleanHeadlines,
+        webContent: result.webContent,
+        taskId: result.taskId
+      });
+      
+      setShowFeedbackInput(false);
+      setFeedbackText('');
+      setFeedbackForHeadline(null);
+      console.log('Headline regenerated successfully:', cleanHeadlines);
+      
+    } catch (error) {
+      console.error('Ошибка регенерации заголовка:', error);
+      alert('Произошла ошибка при регенерации заголовка. Попробуйте снова.');
+    }
+    setIsRegenerating(false);
   };
 
   const cancelEdit = () => {
@@ -197,13 +242,13 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
                   const clickability = getClickabilityScore(headline);
                   const style = getHeadlineStyle(index);
                   return (
-                    <motion.button
+                    <motion.div
                       key={index}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                       onClick={() => editingIndex !== index && selectHeadline(headline)}
-                      className={`w-full p-5 rounded-xl border-2 text-left transition-all hover:shadow-lg ${
+                      className={`w-full p-5 rounded-xl border-2 text-left transition-all hover:shadow-lg cursor-pointer ${
                         selectedHeadline === headline
                           ? 'border-blue-500 bg-blue-50 shadow-lg'
                           : 'border-gray-200 hover:border-gray-300'
@@ -263,17 +308,31 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
                                 <p className="font-medium text-gray-900 text-base leading-tight flex-1 pr-2">
                                   {headline}
                                 </p>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    startEditing(index, headline);
-                                  }}
-                                  className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
-                                >
-                                  <Edit3 className="w-3 h-3" />
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      startEditing(index, headline);
+                                    }}
+                                    className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                                  >
+                                    <Edit3 className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setFeedbackForHeadline(index);
+                                      setShowFeedbackInput(true);
+                                    }}
+                                    className="h-6 w-6 p-0 opacity-60 hover:opacity-100 text-green-600"
+                                  >
+                                    <Target className="w-3 h-3" />
+                                  </Button>
+                                </div>
                               </div>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
@@ -293,7 +352,7 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
                           )}
                         </div>
                       </div>
-                    </motion.button>
+                    </motion.div>
                   );
                 })}
               </motion.div>
@@ -370,14 +429,17 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
               </div>
               
               <Select 
-                value={config.imageModel || 'recraft-v3'} 
-                onValueChange={(value) => setConfig({...config, imageModel: value})}
+                value={config.imageModel || 'recraftv3'} 
+                onValueChange={(value) => {
+                  console.log('Setting imageModel to:', value);
+                  setConfig({...config, imageModel: value});
+                }}
               >
                 <SelectTrigger className="h-12 text-base border-gray-200 focus:border-green-500 rounded-xl bg-white">
                   <SelectValue placeholder="Выберите модель" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-gray-200">
-                  <SelectItem value="recraft-v3" className="p-4 rounded-lg">
+                  <SelectItem value="recraftv3" className="p-4 rounded-lg">
                     <div className="text-left">
                       <div className="font-bold text-gray-900">Recraft V3</div>
                       <div className="text-sm text-gray-500">Универсальная модель высокого качества</div>
@@ -389,13 +451,13 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
                       <div className="text-sm text-gray-500">Фотореалистичные изображения</div>
                     </div>
                   </SelectItem>
-                  <SelectItem value="digital-illustration" className="p-4 rounded-lg">
+                  <SelectItem value="digital_illustration" className="p-4 rounded-lg">
                     <div className="text-left">
                       <div className="font-bold text-gray-900">Digital Illustration</div>
                       <div className="text-sm text-gray-500">Яркие рекламные иллюстрации</div>
                     </div>
                   </SelectItem>
-                  <SelectItem value="vector-illustration" className="p-4 rounded-lg">
+                  <SelectItem value="vector_illustration" className="p-4 rounded-lg">
                     <div className="text-left">
                       <div className="font-bold text-gray-900">Vector Art</div>
                       <div className="text-sm text-gray-500">Чистые геометрические формы</div>
@@ -476,11 +538,74 @@ export default function HeadlineStep({ config, setConfig, onNext }) {
             </motion.div>
           )}
 
+          {/* Feedback Input for Regeneration */}
+          <AnimatePresence>
+            {showFeedbackInput && feedbackForHeadline !== null && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-4 p-4 border border-green-200 rounded-xl bg-green-50"
+              >
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Как улучшить заголовок "{headlines[feedbackForHeadline]?.substring(0, 50)}..."?
+                </Label>
+                <p className="text-xs text-gray-500 mb-3">
+                  Например: "сделать более агрессивным", "добавить юмор", "более профессионально", "проще для понимания"
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                    placeholder="Опишите ваши пожелания..."
+                    className="flex-1"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleRegenerateHeadline(feedbackForHeadline);
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={() => handleRegenerateHeadline(feedbackForHeadline)}
+                    disabled={isRegenerating || !feedbackText.trim()}
+                    className="px-6"
+                  >
+                    {isRegenerating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Применить'
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowFeedbackInput(false);
+                      setFeedbackText('');
+                      setFeedbackForHeadline(null);
+                    }}
+                    className="px-4"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="flex gap-4">
+            <Button
+              onClick={onBack}
+              variant="outline"
+              className="h-12 px-6"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Назад
+            </Button>
+            
             <Button
               variant="outline"
               onClick={generateHeadlines}
-              disabled={isGenerating}
+              disabled={isGenerating || isRegenerating}
               className="flex-1 h-12"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />

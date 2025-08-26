@@ -208,6 +208,37 @@ Return ONLY 3 headlines, each on a new line, WITHOUT numbering or additional tex
     return styles[index] || 'generic';
   }
 
+  getTemplateStyle(template, language = 'ru') {
+    const templateStyles = {
+      'blue_white': {
+        'ru': 'деловой и надежный',
+        'fr': 'professionnel et fiable',
+        'de': 'professionell und vertrauenswürdig',
+        'es': 'profesional y confiable',
+        'en': 'professional and reliable'
+      },
+      'red_white': {
+        'ru': 'энергичный и призывающий к действию',
+        'fr': 'énergique et incitatif à l\'action',
+        'de': 'energiegeladen und handlungsauffordernd',
+        'es': 'enérgico y que llama a la acción',
+        'en': 'energetic and call-to-action'
+      }
+    };
+
+    const universalStyles = {
+      'ru': 'универсальный',
+      'fr': 'universel',
+      'de': 'universell',
+      'es': 'universal',
+      'en': 'universal'
+    };
+
+    return (templateStyles[template] && templateStyles[template][language]) 
+           || universalStyles[language] 
+           || universalStyles['en'];
+  }
+
   getFallbackHeadlines(content, language) {
     console.log(`[${this.name}] Using fallback headlines for ${language}`);
     
@@ -240,5 +271,123 @@ Return ONLY 3 headlines, each on a new line, WITHOUT numbering or additional tex
     };
 
     return fallbackHeadlines[language] || fallbackHeadlines['en'];
+  }
+
+  // Regenerate headlines with user feedback
+  async regenerateHeadlines({ webContent, template, currentHeadlines, userFeedback }) {
+    console.log(`[${this.name}] Regenerating headlines with user feedback: "${userFeedback}"`);
+    
+    try {
+      const language = webContent.language || 'ru';
+      const templateStyle = this.getTemplateStyle(template, language);
+      
+      const systemPrompt = `Ты специалист по созданию рекламных заголовков. Твоя задача - создать новые заголовки на основе фидбека пользователя.`;
+      
+      const userPrompt = this.buildRegenerationPrompt(webContent, templateStyle, currentHeadlines, userFeedback, language);
+      
+      const response = await callOpenAI(systemPrompt, userPrompt);
+      const headlines = this.parseHeadlines(response);
+      
+      if (headlines.length === 0) {
+        throw new Error('No valid headlines generated after feedback application');
+      }
+      
+      const result = headlines.map((text, index) => ({
+        id: index + 1,
+        text: text,
+        style: this.getHeadlineStyle(index),
+        language: language,
+        regenerated: true,
+        feedback: userFeedback
+      }));
+      
+      console.log(`[${this.name}] Generated ${result.length} regenerated headlines`);
+      return result;
+      
+    } catch (error) {
+      console.error(`[${this.name}] Error in headline regeneration:`, error);
+      
+      // Return enhanced current headlines as fallback
+      return currentHeadlines.map((headline, index) => ({
+        id: index + 1,
+        text: headline,
+        style: this.getHeadlineStyle(index),
+        language: webContent.language || 'ru',
+        regenerated: true,
+        feedback: userFeedback,
+        fallback: true
+      }));
+    }
+  }
+
+  buildRegenerationPrompt(content, templateStyle, currentHeadlines, userFeedback, language) {
+    const headlinesText = currentHeadlines.join('\n');
+    
+    switch (language) {
+      case 'ru':
+        return `Перепиши заголовки с учетом пожеланий пользователя.
+
+КОНТЕНТ:
+Заголовок: ${content.title}
+Описание: ${content.description}
+
+ТЕКУЩИЕ ЗАГОЛОВКИ:
+${headlinesText}
+
+ПОЖЕЛАНИЯ ПОЛЬЗОВАТЕЛЯ: "${userFeedback}"
+
+ТРЕБОВАНИЯ:
+- Стиль: ${templateStyle}
+- Каждый заголовок 90-100 символов
+- Учти пожелания пользователя
+- Сохрани суть контента
+- 3 разных подхода: выгода, решение проблемы, призыв к действию
+
+ФОРМАТ ОТВЕТА:
+Верни ТОЛЬКО 3 новых заголовка, каждый с новой строки, БЕЗ нумерации.`;
+
+      case 'en':
+        return `Rewrite headlines based on user feedback.
+
+CONTENT:
+Title: ${content.title}
+Description: ${content.description}
+
+CURRENT HEADLINES:
+${headlinesText}
+
+USER FEEDBACK: "${userFeedback}"
+
+REQUIREMENTS:
+- Style: ${templateStyle}
+- Each headline 90-100 characters
+- Apply user feedback
+- Keep content essence
+- 3 different approaches: benefit, problem-solving, call-to-action
+
+RESPONSE FORMAT:
+Return ONLY 3 new headlines, each on a new line, WITHOUT numbering.`;
+
+      default:
+        return `Rewrite headlines based on user feedback.
+
+CONTENT:
+Title: ${content.title}
+Description: ${content.description}
+
+CURRENT HEADLINES:
+${headlinesText}
+
+USER FEEDBACK: "${userFeedback}"
+
+REQUIREMENTS:
+- Style: ${templateStyle}
+- Each headline 90-100 characters
+- Apply user feedback
+- Keep content essence
+
+RESPONSE FORMAT:
+Return ONLY 3 new headlines, each on a new line, WITHOUT numbering.`;
+    }
   }
 }

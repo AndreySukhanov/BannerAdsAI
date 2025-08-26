@@ -2,37 +2,38 @@
 import fetch from 'node-fetch';
 
 const RECRAFT_API_URL = 'https://external.api.recraft.ai/v1';
-const RECRAFT_API_KEY = process.env.RECRAFT_API_KEY;
 
 // Available Recraft.ai models for banner generation
 export const RECRAFT_MODELS = {
-  'recraft-v3': {
-    id: 'recraft-v3',
+  'recraftv3': {
+    id: 'recraftv3',
     name: 'Recraft V3',
     description: 'Универсальная модель высокого качества',
     best_for: 'Общие цели, разнообразные стили'
   },
   'realistic': {
-    id: 'realistic', 
+    id: 'recraftv3', 
     name: 'Realistic',
-    description: 'Фотореалистичные изображения',
+    description: 'Фотореалистичные изображения (через Recraft V3)',
     best_for: 'Реалистичные фотографии, продукты'
   },
-  'digital-illustration': {
-    id: 'digital-illustration',
+  'digital_illustration': {
+    id: 'recraftv3',
     name: 'Digital Illustration', 
-    description: 'Цифровые иллюстрации',
+    description: 'Цифровые иллюстрации (через Recraft V3)',
     best_for: 'Яркие рекламные изображения'
   },
-  'vector-illustration': {
-    id: 'vector-illustration',
+  'vector_illustration': {
+    id: 'recraftv3',
     name: 'Vector Art',
-    description: 'Векторная графика',
+    description: 'Векторная графика (через Recraft V3)',
     best_for: 'Чистые геометрические формы'
   }
 };
 
-export async function callRecraftImageGeneration(prompt, model = 'recraft-v3', options = {}) {
+export async function callRecraftImageGeneration(prompt, model = 'recraftv3', options = {}) {
+  const RECRAFT_API_KEY = process.env.RECRAFT_API_KEY;
+  
   if (!RECRAFT_API_KEY) {
     const error = new Error('RECRAFT_API_KEY не установлен в переменных окружения');
     error.code = 'MISSING_API_KEY';
@@ -48,11 +49,13 @@ export async function callRecraftImageGeneration(prompt, model = 'recraft-v3', o
     throw error;
   }
 
+  // Get the correct model ID
+  const modelId = RECRAFT_MODELS[model]?.id || model;
+  
   const requestData = {
     prompt: prompt,
-    model: model,
+    model: modelId,
     size: options.size || '1024x1024',
-    style: options.style || 'auto',
     n: options.n || 1,
     response_format: 'url',
     ...options
@@ -104,6 +107,8 @@ export async function callRecraftImageGeneration(prompt, model = 'recraft-v3', o
 }
 
 export async function getRecraftModels() {
+  const RECRAFT_API_KEY = process.env.RECRAFT_API_KEY;
+  
   try {
     const response = await fetch(`${RECRAFT_API_URL}/models`, {
       headers: {
@@ -127,21 +132,21 @@ export async function getRecraftModels() {
 }
 
 // Helper function to optimize prompts for Recraft.ai
-export function optimizePromptForRecraft(prompt, model = 'recraft-v3') {
+export function optimizePromptForRecraft(prompt, model = 'recraftv3') {
   let optimizedPrompt = prompt;
 
   // Model-specific optimizations
   switch (model) {
     case 'realistic':
-      optimizedPrompt = `High-quality photograph, professional lighting, ${prompt}, photorealistic, detailed`;
+      optimizedPrompt = `High-quality photograph, professional studio lighting, sharp focus, ${prompt}, photorealistic, ultra-detailed, commercial photography, professional composition`;
       break;
-    case 'digital-illustration':
-      optimizedPrompt = `Digital art illustration, vibrant colors, modern style, ${prompt}, professional artwork`;
+    case 'digital_illustration':
+      optimizedPrompt = `Digital art style illustration, highly detailed, vibrant colors, glowing light effects, sharp outlines, smooth textures, fantasy atmosphere, dramatic contrast, artistic stylization, not photorealistic, imaginative composition, ${prompt}`;
       break;
-    case 'vector-illustration':
-      optimizedPrompt = `Vector art style, clean lines, geometric shapes, ${prompt}, minimal design`;
+    case 'vector_illustration':
+      optimizedPrompt = `Vector art style, clean bold lines, geometric shapes, flat colors, ${prompt}, minimal design, modern flat design illustration, simple composition, scalable graphics`;
       break;
-    default: // recraft-v3
+    default: // recraftv3
       optimizedPrompt = `High-quality image, professional, ${prompt}, detailed, modern`;
   }
 

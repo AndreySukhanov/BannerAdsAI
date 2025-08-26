@@ -4,9 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, RefreshCw, Download, Check, Upload, X } from "lucide-react";
+import { Loader2, RefreshCw, Download, Check, Upload, X, Target, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { generateBannerFromHeadline, uploadFile as uploadFileMultiAgent } from "@/api/multi-agent-client";
+import { generateBannerFromHeadline, uploadFile as uploadFileMultiAgent, regenerateImages } from "@/api/multi-agent-client";
+import { Label } from "@/components/ui/label";
 
 // --- Утилиты для работы с цветом ---
 
@@ -135,11 +136,14 @@ const backgroundStyles = [
 ];
 
 
-export default function BannerStep({ config, setConfig }) {
+export default function BannerStep({ config, setConfig, onBack }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [banners, setBanners] = useState(config.banner_urls || []);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isRegeneratingImages, setIsRegeneratingImages] = useState(false);
+  const [showImageFeedback, setShowImageFeedback] = useState(false);
+  const [imageFeedback, setImageFeedback] = useState('');
 
   const createBannerWithText = async (imageUrl, headline, size, template, composition, isUploaded = false) => {
     return new Promise((resolve) => {
@@ -304,6 +308,7 @@ export default function BannerStep({ config, setConfig }) {
     setBanners([]); // Очищаем старые баннеры перед генерацией новых
     try {
       console.log('Generating banners using multi-agent system...');
+      console.log('Config imageModel:', config.imageModel);
       
       const result = await generateBannerFromHeadline({
         selectedHeadline: config.selected_headline,
@@ -311,7 +316,8 @@ export default function BannerStep({ config, setConfig }) {
         template: config.template,
         uploadedImage: uploadedImage ? { url: uploadedImage } : null,
         webContent: config.webContent,
-        url: config.url
+        url: config.url,
+        imageModel: config.imageModel
       });
       
       // Compose final images with text overlay on canvas
@@ -367,6 +373,73 @@ export default function BannerStep({ config, setConfig }) {
     setIsGenerating(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.selected_headline, config.size, config.template, uploadedImage, config.webContent, config.url, isGenerating]);
+
+  const handleRegenerateImages = async () => {
+    if (!imageFeedback.trim()) {
+      alert('Пожалуйста, введите пожелания для улучшения изображений');
+      return;
+    }
+
+    setIsRegeneratingImages(true);
+    try {
+      console.log('Regenerating images with feedback:', imageFeedback);
+      
+      const result = await regenerateImages({
+        webContent: config.webContent,
+        headlines: [config.selected_headline],
+        userFeedback: imageFeedback,
+        imageModel: config.imageModel || 'recraftv3',
+        count: 3
+      });
+      
+      // Compose new banners with text overlay
+      const generatedBanners = (await Promise.all(
+        result.images.map(async (image, index) => {
+          try {
+            const composedUrl = await createBannerWithText(
+              image.url,
+              config.selected_headline,
+              `${config.size}`,
+              config.template,
+              { padding: 20, fontSize: 'auto' },
+              false
+            );
+            return {
+              url: composedUrl,
+              headline: config.selected_headline,
+              template: config.template,
+              size: config.size,
+              imageUrl: image.url,
+              composition: { padding: 20, fontSize: 'auto' },
+              isUploadedImage: false,
+              regenerated: true,
+              feedback: imageFeedback
+            };
+          } catch (error) {
+            console.error('Error creating banner with text:', error);
+            return null;
+          }
+        })
+      )).filter(Boolean);
+      
+      setBanners(generatedBanners);
+      setConfig({
+        ...config,
+        banner_urls: generatedBanners,
+        taskId: result.taskId,
+        images: result.images
+      });
+      
+      setShowImageFeedback(false);
+      setImageFeedback('');
+      console.log('Images regenerated successfully:', generatedBanners.length);
+      
+    } catch (error) {
+      console.error('Ошибка регенерации изображений:', error);
+      alert('Произошла ошибка при регенерации изображений. Попробуйте снова.');
+    }
+    setIsRegeneratingImages(false);
+  };
 
   useEffect(() => {
     if (!config.selected_headline) return;
@@ -555,16 +628,88 @@ export default function BannerStep({ config, setConfig }) {
                   ))}
                 </div>
 
+                {/* Image Feedback Input */}
+                <AnimatePresence>
+                  {showImageFeedback && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-4 p-4 border border-blue-200 rounded-xl bg-blue-50"
+                    >
+                      <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                        Как улучшить изображения для баннеров?
+                      </Label>
+                      <p className="text-xs text-gray-500 mb-3">
+                        Например: "сделать более яркими", "добавить теплых тонов", "более минималистично", "показать людей"
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          value={imageFeedback}
+                          onChange={(e) => setImageFeedback(e.target.value)}
+                          placeholder="Опишите ваши пожелания для изображений..."
+                          className="flex-1"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleRegenerateImages();
+                            }
+                          }}
+                        />
+                        <Button
+                          onClick={handleRegenerateImages}
+                          disabled={isRegeneratingImages || !imageFeedback.trim()}
+                          className="px-6"
+                        >
+                          {isRegeneratingImages ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            'Применить'
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowImageFeedback(false);
+                            setImageFeedback('');
+                          }}
+                          className="px-4"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Action Buttons */}
                 <div className="flex gap-4">
                   <Button
+                    onClick={onBack}
+                    variant="outline"
+                    className="h-12 px-6"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Назад
+                  </Button>
+                  
+                  <Button
                     variant="outline"
                     onClick={generateBanners}
-                    disabled={isGenerating}
+                    disabled={isGenerating || isRegeneratingImages}
                     className="flex-1 flex items-center gap-2 h-12 px-6 rounded-xl border-gray-200 hover:bg-gray-50"
                   >
                     <RefreshCw className="w-4 h-4" />
                     Создать новые варианты
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowImageFeedback(!showImageFeedback)}
+                    disabled={isGenerating || isRegeneratingImages || banners.length === 0}
+                    className="h-12 px-4 border-blue-300 text-blue-700 hover:bg-blue-50"
+                  >
+                    <Target className="w-4 h-4 mr-2" />
+                    С пожеланиями
                   </Button>
                   
                   <Button

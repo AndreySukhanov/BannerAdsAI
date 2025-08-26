@@ -1,10 +1,12 @@
 
 // React import not needed with new JSX transform
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import { Zap } from "lucide-react";
 
 export default function Layout({ children }) {
+  const handleLogoClick = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <style>{`
@@ -76,12 +78,15 @@ export default function Layout({ children }) {
       {/* Минималистичный хедер */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-6 py-4">
-          <Link to={createPageUrl("BannerGenerator")} className="flex items-center gap-3">
+          <button 
+            onClick={handleLogoClick} 
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+          >
             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
               <Zap className="w-4 h-4 text-white" />
             </div>
             <span className="text-xl font-bold text-gray-900">BannerAdsAI</span>
-          </Link>
+          </button>
         </div>
       </header>
 

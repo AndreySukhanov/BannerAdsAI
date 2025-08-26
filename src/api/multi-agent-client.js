@@ -136,7 +136,8 @@ export async function generateBannerFromHeadline(config) {
       headline: config.selectedHeadline?.substring(0, 30) + '...',
       size: config.size,
       template: config.template,
-      font: config.font
+      font: config.font,
+      imageModel: config.imageModel
     });
     
     const response = await apiRequest('/api/agents/generate-banner-from-headline', {
@@ -225,6 +226,79 @@ export async function uploadFile(file) {
   } catch (error) {
     console.error('[MultiAgent] File upload error:', error);
     throw new Error(`Failed to upload file: ${error.message}`);
+  }
+}
+
+// Regenerate headlines with user feedback
+export async function regenerateHeadlines(config) {
+  try {
+    console.log('[MultiAgent] Regenerating headlines:', {
+      url: config.url,
+      template: config.template,
+      currentHeadlines: config.currentHeadlines,
+      userFeedback: config.userFeedback
+    });
+    
+    const response = await apiRequest('/api/agents/regenerate-headlines', {
+      method: 'POST',
+      body: JSON.stringify({
+        url: config.url,
+        template: config.template,
+        currentHeadlines: config.currentHeadlines,
+        userFeedback: config.userFeedback,
+        webContent: config.webContent
+      })
+    });
+    
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to regenerate headlines');
+    }
+    
+    return {
+      headlines: response.headlines,
+      webContent: response.webContent,
+      taskId: response.taskId
+    };
+    
+  } catch (error) {
+    console.error('[MultiAgent] Headlines regeneration error:', error);
+    throw new Error(`Failed to regenerate headlines: ${error.message}`);
+  }
+}
+
+// Regenerate images with user feedback
+export async function regenerateImages(config) {
+  try {
+    console.log('[MultiAgent] Regenerating images:', {
+      webContent: !!config.webContent,
+      headlines: config.headlines,
+      userFeedback: config.userFeedback,
+      imageModel: config.imageModel
+    });
+    
+    const response = await apiRequest('/api/agents/regenerate-images', {
+      method: 'POST',
+      body: JSON.stringify({
+        webContent: config.webContent,
+        headlines: config.headlines,
+        userFeedback: config.userFeedback,
+        imageModel: config.imageModel || 'recraftv3',
+        count: config.count || 3
+      })
+    });
+    
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to regenerate images');
+    }
+    
+    return {
+      images: response.images,
+      taskId: response.taskId
+    };
+    
+  } catch (error) {
+    console.error('[MultiAgent] Images regeneration error:', error);
+    throw new Error(`Failed to regenerate images: ${error.message}`);
   }
 }
 
