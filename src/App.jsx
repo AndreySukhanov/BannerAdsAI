@@ -2,10 +2,10 @@ import './App.css'
 import Pages from "@/pages/index.jsx"
 import { Toaster } from "@/components/ui/toaster"
 
-function App() {
+function App({ userId }) {
   return (
     <>
-      <Pages />
+      <Pages userId={userId} />
       <Toaster />
     </>
   )

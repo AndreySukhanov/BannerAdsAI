@@ -1,4 +1,6 @@
 // History API Client
+import { getCurrentUserId } from '@/utils/user-id';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3006';
 
 class HistoryAPIError extends Error {
@@ -229,23 +231,16 @@ export async function searchHistory(sessionId, options = {}) {
   }
 }
 
-// Generate session ID for users
+// Get current user ID (compatibility wrapper)
+export function getSessionId() {
+  return getCurrentUserId();
+}
+
+// Legacy function for backward compatibility
 export function generateSessionId() {
   const timestamp = Date.now().toString(36);
   const randomStr = Math.random().toString(36).substring(2, 15);
   return `session_${timestamp}_${randomStr}`;
-}
-
-// Get or create session ID
-export function getSessionId() {
-  let sessionId = localStorage.getItem('bannerads_session_id');
-  
-  if (!sessionId) {
-    sessionId = generateSessionId();
-    localStorage.setItem('bannerads_session_id', sessionId);
-  }
-  
-  return sessionId;
 }
 
 // Clear all user history

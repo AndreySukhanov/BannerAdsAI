@@ -24,22 +24,22 @@ function _getCurrentPage(url) {
 }
 
 // Create a wrapper component that uses useLocation inside the Router context
-function PagesContent() {
+function PagesContent({ userId }) {
     const location = useLocation();
     const currentPage = _getCurrentPage(location.pathname);
     
     return (
         <Routes>            
-            <Route path="/" element={<MainApp />} />
-            <Route path="/BannerGenerator" element={<MainApp />} />
+            <Route path="/" element={<MainApp userId={userId} />} />
+            <Route path="/BannerGenerator" element={<MainApp userId={userId} />} />
         </Routes>
     );
 }
 
-export default function Pages() {
+export default function Pages({ userId }) {
     return (
         <Router>
-            <PagesContent />
+            <PagesContent userId={userId} />
         </Router>
     );
 }

@@ -3,18 +3,26 @@ import Layout from './Layout';
 import BannerGenerator from './BannerGenerator';
 import UserCabinet from '@/components/cabinet/UserCabinet';
 import { getSessionId } from '@/api/history-client';
+import { setCurrentUserId, getCurrentUserId } from '@/utils/user-id';
 
-export default function MainApp() {
+export default function MainApp({ userId }) {
   const [currentView, setCurrentView] = useState('create'); // 'create' | 'history'
   const [sessionId, setSessionId] = useState(null);
   const [savedConfig, setSavedConfig] = useState(null);
 
-  // Initialize session on mount
+  // Initialize user ID and session
   useEffect(() => {
-    const id = getSessionId();
+    // Установить userId если он передан через пропс
+    if (userId !== undefined && userId !== null) {
+      setCurrentUserId(userId);
+      console.log('[MainApp] External User ID set:', userId);
+    }
+    
+    // Получить актуальный ID (из пропса, глобальной переменной или localStorage)
+    const id = getCurrentUserId();
     setSessionId(id);
-    console.log('[MainApp] Session ID:', id);
-  }, []);
+    console.log('[MainApp] Current User ID:', id);
+  }, [userId]);
 
   // Handle navigation between views
   const handleNavigate = (view) => {
