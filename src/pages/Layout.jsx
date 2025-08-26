@@ -1,6 +1,6 @@
 
 // React import not needed with new JSX transform
-import { Zap, History } from "lucide-react";
+import { Zap, User } from "lucide-react";
 
 export default function Layout({ children, showNavigation = false, onNavigate }) {
   const handleLogoClick = () => {
@@ -100,8 +100,8 @@ export default function Layout({ children, showNavigation = false, onNavigate })
                   onClick={() => onNavigate('history')}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                 >
-                  <History className="w-4 h-4" />
-                  История
+                  <User className="w-4 h-4" />
+                  Кабинет
                 </button>
               </nav>
             )}

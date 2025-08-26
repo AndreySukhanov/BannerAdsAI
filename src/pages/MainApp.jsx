@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from './Layout';
 import BannerGenerator from './BannerGenerator';
-import HistoryStep from '@/components/history/HistoryStep';
+import UserCabinet from '@/components/cabinet/UserCabinet';
 import { getSessionId } from '@/api/history-client';
 
 export default function MainApp() {
@@ -67,7 +67,7 @@ export default function MainApp() {
           onConfigChange={() => setSavedConfig(null)} // Clear saved config when user makes changes
         />
       ) : currentView === 'history' ? (
-        <HistoryStep
+        <UserCabinet
           sessionId={sessionId}
           onSelectGeneration={handleSelectGeneration}
           onBack={handleBackFromHistory}

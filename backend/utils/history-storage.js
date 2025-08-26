@@ -336,6 +336,35 @@ export class HistoryStorage {
       console.error('[HistoryStorage] Failed to remove from index:', error);
     }
   }
+
+  // Очистить всю историю пользователя
+  async clearUserHistory(sessionId) {
+    try {
+      const index = await this.loadIndex();
+      const userRecords = index.filter(record => record.sessionId === sessionId);
+      
+      // Удаляем файлы генераций пользователя
+      for (const record of userRecords) {
+        try {
+          const recordFile = path.join(this.historyDir, `${record.id}.json`);
+          await fs.unlink(recordFile);
+        } catch (error) {
+          console.warn(`[HistoryStorage] Could not delete record file ${record.id}:`, error);
+        }
+      }
+      
+      // Обновляем индекс, убирая записи пользователя
+      const filteredIndex = index.filter(record => record.sessionId !== sessionId);
+      await fs.writeFile(this.indexFile, JSON.stringify(filteredIndex, null, 2));
+      
+      console.log(`[HistoryStorage] Cleared ${userRecords.length} records for session ${sessionId}`);
+      return userRecords.length;
+      
+    } catch (error) {
+      console.error('[HistoryStorage] Failed to clear user history:', error);
+      throw error;
+    }
+  }
 }
 
 // Экспортируем глобальный экземпляр

@@ -30,7 +30,8 @@ import {
   getUserStats,
   reproduceGeneration,
   searchHistory,
-  saveDownloadedBanner
+  saveDownloadedBanner,
+  clearUserHistory
 } from './routes/history.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -111,6 +112,7 @@ app.get('/api/agents/stats', getStats);
 app.get('/api/history/:sessionId', getUserHistory);
 app.get('/api/history/:sessionId/stats', getUserStats);  
 app.get('/api/history/:sessionId/search', searchHistory);
+app.delete('/api/history/:sessionId/clear', clearUserHistory);
 app.get('/api/generation/:generationId', getGeneration);
 app.post('/api/generation', saveGeneration);
 app.delete('/api/generation/:generationId', deleteGeneration);

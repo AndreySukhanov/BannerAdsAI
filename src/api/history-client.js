@@ -248,6 +248,29 @@ export function getSessionId() {
   return sessionId;
 }
 
+// Clear all user history
+export async function clearUserHistory(sessionId) {
+  try {
+    console.log('[HistoryAPI] Clearing all history for session:', sessionId);
+    
+    const response = await apiRequest(`/api/history/${sessionId}/clear`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to clear history');
+    }
+    
+    return {
+      clearedCount: response.clearedCount
+    };
+    
+  } catch (error) {
+    console.error('[HistoryAPI] Clear history error:', error);
+    throw new Error(`Failed to clear history: ${error.message}`);
+  }
+}
+
 // Save downloaded banner to history
 export async function saveDownloadedBanner(sessionId, bannerData, generationContext) {
   try {

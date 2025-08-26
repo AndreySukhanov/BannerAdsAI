@@ -201,6 +201,36 @@ export async function saveDownloadedBanner(req, res) {
   }
 }
 
+// Очистить всю историю пользователя
+export async function clearUserHistory(req, res) {
+  try {
+    const { sessionId } = req.params;
+    
+    console.log(`[History API] Clearing all history for session: ${sessionId}`);
+    
+    if (!sessionId) {
+      return res.status(400).json({
+        error: 'Missing sessionId parameter'
+      });
+    }
+    
+    const clearedCount = await historyStorage.clearUserHistory(sessionId);
+    
+    res.json({
+      success: true,
+      clearedCount,
+      message: `Cleared ${clearedCount} records from history`
+    });
+    
+  } catch (error) {
+    console.error('[History API] Clear history error:', error);
+    res.status(500).json({
+      error: 'Failed to clear history',
+      message: error.message
+    });
+  }
+}
+
 // Получить статистику пользователя
 export async function getUserStats(req, res) {
   try {

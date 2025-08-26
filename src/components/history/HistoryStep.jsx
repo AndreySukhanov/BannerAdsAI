@@ -25,7 +25,8 @@ import {
   deleteGeneration, 
   reproduceGeneration,
   searchHistory,
-  getUserStats 
+  getUserStats,
+  clearUserHistory
 } from "@/api/history-client";
 
 export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
@@ -36,6 +37,7 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
   const [pagination, setPagination] = useState({});
   const [stats, setStats] = useState({});
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [isClearing, setIsClearing] = useState(false);
 
   // Load user history
   const loadHistory = async (page = 1, search = '') => {
@@ -148,6 +150,32 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
     });
   };
 
+  // Clear all history
+  const handleClearHistory = async () => {
+    if (!confirm('Вы уверены, что хотите удалить ВСЮ историю генераций? Это действие необратимо!')) {
+      return;
+    }
+
+    setIsClearing(true);
+    try {
+      const result = await clearUserHistory(sessionId);
+      console.log(`Очищено ${result.clearedCount} записей`);
+      
+      // Обновляем состояние
+      setHistory([]);
+      setStats({});
+      setPagination({});
+      
+      alert(`История очищена! Удалено ${result.clearedCount} записей.`);
+      
+    } catch (error) {
+      console.error('Failed to clear history:', error);
+      alert('Ошибка при очистке истории');
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -174,7 +202,7 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
         <div className="step-number"><History className="w-5 h-5" /></div>
         <div>
           <h2 className="text-xl font-bold text-gray-900">История генераций</h2>
-          <p className="text-gray-600">Все ваши созданные баннеры сохранены здесь</p>
+          <p className="text-gray-600">Управляйте вашими созданными баннерами</p>
         </div>
       </div>
 
@@ -451,11 +479,32 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
             </div>
           )}
 
-          {/* Back Button */}
-          <div className="flex justify-center mt-6">
+          {/* Action Buttons */}
+          <div className="flex justify-center items-center gap-4 mt-6">
             <Button onClick={onBack} variant="outline" className="px-8">
               Вернуться к созданию
             </Button>
+            
+            {history.length > 0 && (
+              <Button 
+                onClick={handleClearHistory} 
+                variant="outline"
+                className="px-6 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                disabled={isClearing}
+              >
+                {isClearing ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Очищение...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Очистить историю
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
