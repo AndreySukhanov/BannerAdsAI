@@ -306,9 +306,9 @@ export class HistoryStorage {
       // Добавляем в начало (последние записи сверху)
       index.unshift(indexRecord);
       
-      // Ограничиваем размер индекса (последние 1000 записей)
-      if (index.length > 1000) {
-        const removedRecords = index.splice(1000);
+      // Ограничиваем размер индекса (последние 100 записей)
+      if (index.length > 100) {
+        const removedRecords = index.splice(100);
         // Удаляем старые файлы записей
         for (const oldRecord of removedRecords) {
           try {
