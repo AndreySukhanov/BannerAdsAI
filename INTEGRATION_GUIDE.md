@@ -52,7 +52,144 @@ function UserBannerPage({ user }) {
 }
 ```
 
-### Вариант 3: Программная инициализация
+### Вариант 3: VueJS-интеграция
+
+#### Iframe подход (рекомендуется):
+```vue
+<template>
+  <div class="banner-generator">
+    <h2>Генератор баннеров для {{ user.name }}</h2>
+    
+    <iframe
+      ref="bannerFrame"
+      :src="bannerUrl"
+      width="100%"
+      height="800px"
+      frameborder="0"
+      @load="onFrameLoad"
+    />
+  </div>
+</template>
+
+<script>
+export default {
+  props: ['user'],
+  
+  computed: {
+    bannerUrl() {
+      return `/bannerads/index.html?userId=${this.user.id}`;
+    }
+  },
+  
+  mounted() {
+    window.BANNER_USER_ID = this.user.id;
+  },
+  
+  methods: {
+    onFrameLoad() {
+      const iframe = this.$refs.bannerFrame;
+      iframe.contentWindow.BANNER_USER_ID = this.user.id;
+    }
+  }
+}
+</script>
+```
+
+#### Модальное окно:
+```vue
+<template>
+  <div>
+    <button @click="openBannerGenerator" class="btn-primary">
+      Создать баннер
+    </button>
+    
+    <el-dialog
+      v-model="showBannerDialog"
+      title="Генератор баннеров"
+      width="90%"
+    >
+      <iframe
+        v-if="showBannerDialog"
+        src="/bannerads/index.html"
+        width="100%"
+        height="700px"
+        frameborder="0"
+      />
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      showBannerDialog: false
+    }
+  },
+  
+  props: ['user'],
+  
+  methods: {
+    openBannerGenerator() {
+      window.BANNER_USER_ID = this.user.id;
+      this.showBannerDialog = true;
+    },
+    
+    closeBannerGenerator() {
+      this.showBannerDialog = false;
+      delete window.BANNER_USER_ID;
+    }
+  }
+}
+</script>
+```
+
+#### Vue Plugin для удобства:
+```javascript
+// plugins/bannerads.js
+export default {
+  install(app, options) {
+    app.config.globalProperties.$setBannerUser = (userId) => {
+      window.BANNER_USER_ID = userId;
+    };
+    
+    app.component('BannerAdsIframe', {
+      props: ['userId', 'height'],
+      template: `
+        <iframe
+          src="/bannerads/index.html"
+          :width="'100%'"
+          :height="height || '800px'"
+          frameborder="0"
+          @load="setUserId"
+        />
+      `,
+      methods: {
+        setUserId() {
+          if (this.userId) {
+            window.BANNER_USER_ID = this.userId;
+          }
+        }
+      },
+      mounted() {
+        this.setUserId();
+      }
+    });
+  }
+};
+
+// main.js
+import { createApp } from 'vue';
+import BannerAdsPlugin from './plugins/bannerads.js';
+
+const app = createApp(App);
+app.use(BannerAdsPlugin);
+
+// Использование:
+// <BannerAdsIframe :user-id="user.id" height="600px" />
+```
+
+### Вариант 4: Программная инициализация
 
 ```javascript
 // В любом месте вашего кода

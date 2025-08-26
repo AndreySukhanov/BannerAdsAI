@@ -56,6 +56,33 @@ import BannerAdsAI from './BannerAdsAI';
 <BannerAdsAI userId={user.id} />
 ```
 
+### VueJS
+```vue
+<!-- Iframe подход (рекомендуется) -->
+<template>
+  <iframe
+    src="/bannerads/index.html"
+    width="100%"
+    height="800px"
+    @load="setUserId"
+  />
+</template>
+
+<script>
+export default {
+  props: ['user'],
+  mounted() {
+    window.BANNER_USER_ID = this.user.id;
+  },
+  methods: {
+    setUserId() {
+      this.$refs.bannerFrame.contentWindow.BANNER_USER_ID = this.user.id;
+    }
+  }
+}
+</script>
+```
+
 ### Проверка статуса
 ```javascript
 console.log(window.BannerAdsAI.isReady());
@@ -165,6 +192,6 @@ console.log(window.BannerAdsAI.version); // "2.2.0"
 
 ---
 
-**Время интеграции: ~30 минут** ⏱️  
 **Сложность: Низкая** 🟢  
-**Зависимости: Только userId** 📦
+**Зависимости: Только userId** 📦  
+**Поддержка: React, VueJS, Vanilla JS** ⚡
