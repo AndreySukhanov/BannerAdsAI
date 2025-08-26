@@ -22,6 +22,17 @@ import {
   getStats 
 } from './routes/multi-agent.js';
 
+import {
+  getUserHistory,
+  getGeneration,
+  saveGeneration,
+  deleteGeneration,
+  getUserStats,
+  reproduceGeneration,
+  searchHistory,
+  saveDownloadedBanner
+} from './routes/history.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -95,6 +106,16 @@ app.post('/api/agents/regenerate-headlines', regenerateHeadlines);
 app.post('/api/agents/regenerate-images', regenerateImages);
 app.get('/api/agents/task/:taskId', getTaskStatus);
 app.get('/api/agents/stats', getStats);
+
+// History API Routes
+app.get('/api/history/:sessionId', getUserHistory);
+app.get('/api/history/:sessionId/stats', getUserStats);  
+app.get('/api/history/:sessionId/search', searchHistory);
+app.get('/api/generation/:generationId', getGeneration);
+app.post('/api/generation', saveGeneration);
+app.delete('/api/generation/:generationId', deleteGeneration);
+app.get('/api/generation/:generationId/reproduce', reproduceGeneration);
+app.post('/api/banner/download', saveDownloadedBanner);
 
 // Error handling middleware (must have 4 args)
 app.use((err, req, res, next) => {

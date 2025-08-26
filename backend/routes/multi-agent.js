@@ -85,6 +85,9 @@ export async function generateBannerFromHeadline(req, res) {
   try {
     const { selectedHeadline, size, template, font, uploadedImage, webContent, url, imageModel } = req.body;
     
+    // Получаем sessionId из заголовков или генерируем новый
+    const sessionId = req.headers['x-session-id'] || req.body.sessionId || `session_${Date.now()}`;
+    
     console.log('=== Multi-Agent Banner from Headline ===');
     console.log('Request:', { 
       headline: selectedHeadline?.substring(0, 30) + '...',
@@ -111,7 +114,8 @@ export async function generateBannerFromHeadline(req, res) {
       uploadedImage,
       webContent,
       url,
-      imageModel
+      imageModel,
+      sessionId
     });
     
     res.json({

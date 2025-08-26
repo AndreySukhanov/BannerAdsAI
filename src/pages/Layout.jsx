@@ -1,10 +1,14 @@
 
 // React import not needed with new JSX transform
-import { Zap } from "lucide-react";
+import { Zap, History } from "lucide-react";
 
-export default function Layout({ children }) {
+export default function Layout({ children, showNavigation = false, onNavigate }) {
   const handleLogoClick = () => {
-    window.location.reload();
+    if (onNavigate) {
+      onNavigate('create');
+    } else {
+      window.location.reload();
+    }
   };
 
   return (
@@ -78,15 +82,30 @@ export default function Layout({ children }) {
       {/* Минималистичный хедер */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-6 py-4">
-          <button 
-            onClick={handleLogoClick} 
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
-          >
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">BannerAdsAI</span>
-          </button>
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={handleLogoClick} 
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+            >
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <Zap className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">BannerAdsAI</span>
+            </button>
+            
+            {/* Navigation */}
+            {showNavigation && onNavigate && (
+              <nav className="flex items-center gap-3">
+                <button
+                  onClick={() => onNavigate('history')}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                >
+                  <History className="w-4 h-4" />
+                  История
+                </button>
+              </nav>
+            )}
+          </div>
         </div>
       </header>
 

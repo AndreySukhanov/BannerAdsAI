@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { generateHeadlines as generateHeadlinesMultiAgent, regenerateHeadlines } from "@/api/multi-agent-client";
 import BannerPreview from "@/components/ui/BannerPreview";
 
-export default function HeadlineStep({ config, setConfig, onNext, onBack }) {
+export default function HeadlineStep({ config, setConfig, sessionId, onNext, onBack }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [headlines, setHeadlines] = useState(config.generated_headlines || []);
   const [selectedHeadline, setSelectedHeadline] = useState(config.selected_headline || '');
@@ -29,7 +29,8 @@ export default function HeadlineStep({ config, setConfig, onNext, onBack }) {
       
       const result = await generateHeadlinesMultiAgent({
         url: config.url,
-        template: config.template
+        template: config.template,
+        sessionId: sessionId
       });
       
       // Extract text from headline objects
@@ -117,7 +118,8 @@ export default function HeadlineStep({ config, setConfig, onNext, onBack }) {
         template: config.template,
         currentHeadlines: [headlines[headlineIndex]], // Только один выбранный заголовок
         userFeedback: feedbackText,
-        webContent: config.webContent
+        webContent: config.webContent,
+        sessionId: sessionId
       });
       
       // Extract text from headline objects

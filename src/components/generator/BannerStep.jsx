@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, RefreshCw, Download, Check, Upload, X, Target, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateBannerFromHeadline, uploadFile as uploadFileMultiAgent, regenerateImages } from "@/api/multi-agent-client";
+import { saveDownloadedBanner } from "@/api/history-client";
 import { Label } from "@/components/ui/label";
 
 // --- Утилиты для работы с цветом ---
@@ -136,7 +137,7 @@ const backgroundStyles = [
 ];
 
 
-export default function BannerStep({ config, setConfig, onBack }) {
+export default function BannerStep({ config, setConfig, sessionId, initialConfig, onBack }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [banners, setBanners] = useState(config.banner_urls || []);
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -317,7 +318,8 @@ export default function BannerStep({ config, setConfig, onBack }) {
         uploadedImage: uploadedImage ? { url: uploadedImage } : null,
         webContent: config.webContent,
         url: config.url,
-        imageModel: config.imageModel
+        imageModel: config.imageModel,
+        sessionId: sessionId
       });
       
       // Compose final images with text overlay on canvas
@@ -389,7 +391,8 @@ export default function BannerStep({ config, setConfig, onBack }) {
         headlines: [config.selected_headline],
         userFeedback: imageFeedback,
         imageModel: config.imageModel || 'recraftv3',
-        count: 3
+        count: 3,
+        sessionId: sessionId
       });
       
       // Compose new banners with text overlay
@@ -449,29 +452,51 @@ export default function BannerStep({ config, setConfig, onBack }) {
     generateBanners();
   }, [uploadedImage, config.selected_headline, config.size, config.template, generateBanners]);
 
-  const downloadBanner = (bannerUrl, index) => {
-    // Force file download via Blob to avoid navigation and ensure immediate save
-    fetch(bannerUrl)
-      .then(res => res.blob())
-      .then(blob => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `banneradsai-${config.size}-${index + 1}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      })
-      .catch(() => {
-        // Fallback to direct link
-        const link = document.createElement('a');
-        link.href = bannerUrl;
-        link.download = `banneradsai-${config.size}-${index + 1}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      });
+  const downloadBanner = async (bannerUrl, index) => {
+    try {
+      // Скачиваем файл
+      const link = document.createElement('a');
+      link.href = bannerUrl;
+      link.download = `banneradsai-${config.size}-${index + 1}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Сохраняем в историю
+      if (sessionId && banners[index]) {
+        const bannerData = {
+          id: banners[index].id || index + 1,
+          headline: config.selected_headline,
+          imageUrl: bannerUrl,
+          size: { width: parseInt(config.size.split('x')[0]), height: parseInt(config.size.split('x')[1]) },
+          template: config.template,
+          isUploadedImage: !!uploadedImage,
+          createdAt: new Date().toISOString()
+        };
+        
+        const generationContext = {
+          taskId: config.taskId,
+          input: {
+            url: config.url,
+            size: config.size,
+            template: config.template,
+            font: config.font,
+            imageModel: config.imageModel,
+            uploadedImage: uploadedImage
+          },
+          output: {
+            webContent: config.webContent,
+            selectedHeadline: config.selected_headline
+          }
+        };
+        
+        await saveDownloadedBanner(sessionId, bannerData, generationContext);
+        console.log('Баннер сохранен в историю');
+      }
+      
+    } catch (error) {
+      console.error('Ошибка при скачивании/сохранении баннера:', error);
+    }
   };
 
   const downloadAllBanners = () => {

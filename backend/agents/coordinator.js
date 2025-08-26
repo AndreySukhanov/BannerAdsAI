@@ -3,6 +3,7 @@ import { HeadlineAgent } from './headline-agent.js';
 import { ImageAgent } from './image-agent.js';
 import { BannerAgent } from './banner-agent.js';
 import { WebScrapingAgent } from './webscraping-agent.js';
+import { historyStorage } from '../utils/history-storage.js';
 
 export class CoordinatorAgent {
   constructor() {
@@ -160,6 +161,8 @@ export class CoordinatorAgent {
       const result = { taskId, banners, images };
       this.completeTask(taskId, result);
       
+      // Примечание: Сохранение в историю теперь происходит только при скачивании пользователем
+      
       return result;
 
     } catch (error) {
@@ -225,6 +228,17 @@ export class CoordinatorAgent {
     } catch (error) {
       console.error(`[Coordinator] Images regeneration task ${taskId} failed:`, error);
       this.failTask(taskId, error);
+      throw error;
+    }
+  }
+
+  // Сохранить генерацию в историю
+  async saveToHistory(data) {
+    try {
+      await historyStorage.saveGeneration(data);
+      console.log(`[Coordinator] Saved task ${data.taskId} to history`);
+    } catch (error) {
+      console.error(`[Coordinator] Failed to save to history:`, error);
       throw error;
     }
   }

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "met1mc0vb0flnhle7zm",
+    "sessionId": "session_meswkx7o_r6iypautmh8",
+    "timestamp": "2025-08-26T21:13:23.551Z",
+    "url": "https://ria.ru/20250826/solntse-2037591662.html",
+    "template": "blue_white",
+    "size": "300x250",
+    "selectedHeadline": "СЛЕДИТЕ ЗА НОВЫМИ СОЛНЕЧНЫМИ ВСПЫШКАМИ: ПОЛУЧАЙТЕ ...",
+    "bannersCount": 1,
+    "language": "unknown",
+    "status": "completed"
+  },
+  {
+    "id": "mesx3icr23joao75e9d",
+    "sessionId": "session_meswkx7o_r6iypautmh8",
+    "timestamp": "2025-08-26T19:06:46.827Z",
+    "url": "https://ria.ru/20250826/solntse-2037591662.html",
+    "template": "blue_white",
+    "size": "300x250",
+    "selectedHeadline": "ЗАЩИТИТЕ СЕБЯ ОТ ГЕОМАГНИТНЫХ БУРЬ: КАК НОВЫЕ ВСПЫ...",
+    "bannersCount": 1,
+    "language": "unknown",
+    "status": "completed"
+  },
+  {
+    "id": "mesx2n5vz3eenqu9xwr",
+    "sessionId": "session_meswkx7o_r6iypautmh8",
+    "timestamp": "2025-08-26T19:06:06.403Z",
+    "url": "https://ria.ru/20250826/solntse-2037591662.html",
+    "template": "blue_white",
+    "size": "300x250",
+    "selectedHeadline": "УЗНАЙТЕ, КАК ИЗБЕЖАТЬ ПОСЛЕДСТВИЙ ГЕОМАГНИТНЫХ БУР...",
+    "bannersCount": 1,
+    "language": "unknown",
+    "status": "completed"
+  }
+]

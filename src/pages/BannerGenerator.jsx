@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Check, Globe, Monitor, Palette, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import HeadlineStep from "../components/generator/HeadlineStep";
 import BannerStep from "../components/generator/BannerStep";
 
-export default function BannerGenerator() {
+export default function BannerGenerator({ sessionId, initialConfig, onConfigChange }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [config, setConfig] = useState({
     url: '',
@@ -23,6 +23,30 @@ export default function BannerGenerator() {
     banner_urls: [],
     status: 'configuring'
   });
+
+  // Load initial config from history if provided
+  useEffect(() => {
+    if (initialConfig) {
+      console.log('[BannerGenerator] Loading initial config:', initialConfig);
+      
+      setConfig(prevConfig => ({
+        ...prevConfig,
+        ...initialConfig
+      }));
+      
+      // If we have a selected headline, skip to headline step
+      if (initialConfig.selected_headline) {
+        setCurrentStep(4);
+      } else if (initialConfig.url) {
+        setCurrentStep(2); // Skip to size selection
+      }
+      
+      // Notify parent that config is being used
+      if (onConfigChange) {
+        onConfigChange(initialConfig);
+      }
+    }
+  }, [initialConfig, onConfigChange]);
 
   const handleContinue = () => {
     if (currentStep === 1 && config.url) {
@@ -48,7 +72,8 @@ export default function BannerGenerator() {
         {currentStep === 4 && (
           <HeadlineStep 
             config={config} 
-            setConfig={setConfig} 
+            setConfig={setConfig}
+            sessionId={sessionId}
             onNext={() => setCurrentStep(5)}
             onBack={() => setCurrentStep(3)}
           />
@@ -57,6 +82,8 @@ export default function BannerGenerator() {
           <BannerStep 
             config={config} 
             setConfig={setConfig}
+            sessionId={sessionId}
+            initialConfig={initialConfig}
             onBack={() => setCurrentStep(4)}
           />
         )}

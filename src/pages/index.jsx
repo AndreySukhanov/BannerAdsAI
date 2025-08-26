@@ -1,12 +1,12 @@
 import Layout from "./Layout.jsx";
 
-import BannerGenerator from "./BannerGenerator.jsx";
+import MainApp from "./MainApp.jsx";
 
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 
 const PAGES = {
     
-    BannerGenerator: BannerGenerator,
+    MainApp: MainApp,
     
 }
 
@@ -29,16 +29,10 @@ function PagesContent() {
     const currentPage = _getCurrentPage(location.pathname);
     
     return (
-        <Layout currentPageName={currentPage}>
-            <Routes>            
-                
-                    <Route path="/" element={<BannerGenerator />} />
-                
-                
-                <Route path="/BannerGenerator" element={<BannerGenerator />} />
-                
-            </Routes>
-        </Layout>
+        <Routes>            
+            <Route path="/" element={<MainApp />} />
+            <Route path="/BannerGenerator" element={<MainApp />} />
+        </Routes>
     );
 }
 

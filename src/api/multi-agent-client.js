@@ -62,13 +62,14 @@ async function apiRequest(endpoint, options = {}) {
 // Generate headlines using multi-agent system
 export async function generateHeadlines(config) {
   try {
-    console.log('[MultiAgent] Generating headlines:', { url: config.url, template: config.template });
+    console.log('[MultiAgent] Generating headlines:', { url: config.url, template: config.template, sessionId: config.sessionId });
     
     const response = await apiRequest('/api/agents/generate-headlines', {
       method: 'POST',
       body: JSON.stringify({
         url: config.url,
-        template: config.template
+        template: config.template,
+        sessionId: config.sessionId
       })
     });
     
@@ -96,7 +97,8 @@ export async function generateCompleteBanner(config) {
       size: config.size,
       template: config.template,
       font: config.font,
-      hasUploadedImage: !!config.uploadedImage
+      hasUploadedImage: !!config.uploadedImage,
+      sessionId: config.sessionId
     });
     
     const response = await apiRequest('/api/agents/generate-banner', {
@@ -107,7 +109,8 @@ export async function generateCompleteBanner(config) {
         template: config.template,
         font: config.font,
         uploadedImage: config.uploadedImage,
-        imageModel: config.imageModel
+        imageModel: config.imageModel,
+        sessionId: config.sessionId
       })
     });
     
@@ -137,7 +140,8 @@ export async function generateBannerFromHeadline(config) {
       size: config.size,
       template: config.template,
       font: config.font,
-      imageModel: config.imageModel
+      imageModel: config.imageModel,
+      sessionId: config.sessionId
     });
     
     const response = await apiRequest('/api/agents/generate-banner-from-headline', {
@@ -150,7 +154,8 @@ export async function generateBannerFromHeadline(config) {
         uploadedImage: config.uploadedImage,
         webContent: config.webContent,
         url: config.url,
-        imageModel: config.imageModel
+        imageModel: config.imageModel,
+        sessionId: config.sessionId
       })
     });
     
@@ -236,7 +241,8 @@ export async function regenerateHeadlines(config) {
       url: config.url,
       template: config.template,
       currentHeadlines: config.currentHeadlines,
-      userFeedback: config.userFeedback
+      userFeedback: config.userFeedback,
+      sessionId: config.sessionId
     });
     
     const response = await apiRequest('/api/agents/regenerate-headlines', {
@@ -246,7 +252,8 @@ export async function regenerateHeadlines(config) {
         template: config.template,
         currentHeadlines: config.currentHeadlines,
         userFeedback: config.userFeedback,
-        webContent: config.webContent
+        webContent: config.webContent,
+        sessionId: config.sessionId
       })
     });
     
@@ -273,7 +280,8 @@ export async function regenerateImages(config) {
       webContent: !!config.webContent,
       headlines: config.headlines,
       userFeedback: config.userFeedback,
-      imageModel: config.imageModel
+      imageModel: config.imageModel,
+      sessionId: config.sessionId
     });
     
     const response = await apiRequest('/api/agents/regenerate-images', {
@@ -283,7 +291,8 @@ export async function regenerateImages(config) {
         headlines: config.headlines,
         userFeedback: config.userFeedback,
         imageModel: config.imageModel || 'recraftv3',
-        count: config.count || 3
+        count: config.count || 3,
+        sessionId: config.sessionId
       })
     });
     
