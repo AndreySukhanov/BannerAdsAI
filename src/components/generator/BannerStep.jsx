@@ -8,7 +8,9 @@ import { Loader2, RefreshCw, Download, Check, Upload, X, Target, ArrowLeft } fro
 import { motion, AnimatePresence } from "framer-motion";
 import { generateBannerFromHeadline, uploadFile as uploadFileMultiAgent, regenerateImages } from "@/api/multi-agent-client";
 import { saveDownloadedBanner } from "@/api/history-client";
+import { ratingAPI } from "@/api/rating-client";
 import { Label } from "@/components/ui/label";
+import RatingModal from "@/components/ui/RatingModal";
 
 // --- Утилиты для работы с цветом ---
 
@@ -145,6 +147,9 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
   const [isRegeneratingImages, setIsRegeneratingImages] = useState(false);
   const [showImageFeedback, setShowImageFeedback] = useState(false);
   const [imageFeedback, setImageFeedback] = useState('');
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [currentRatingBanner, setCurrentRatingBanner] = useState(null);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
   const createBannerWithText = async (imageUrl, headline, size, template, composition, isUploaded = false) => {
     return new Promise((resolve) => {
@@ -463,9 +468,10 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
       document.body.removeChild(link);
       
       // Сохраняем в историю
+      let bannerData = null;
       if (sessionId && banners[index]) {
-        const bannerData = {
-          id: banners[index].id || index + 1,
+        bannerData = {
+          id: banners[index].id || `banner_${Date.now()}_${index}`,
           headline: config.selected_headline,
           imageUrl: bannerUrl,
           size: { width: parseInt(config.size.split('x')[0]), height: parseInt(config.size.split('x')[1]) },
@@ -493,6 +499,20 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
         await saveDownloadedBanner(sessionId, bannerData, generationContext);
         console.log('Баннер сохранен в историю');
       }
+
+      // Показываем модалку рейтинга
+      if (bannerData) {
+        setCurrentRatingBanner({
+          bannerId: bannerData.id,
+          headline: config.selected_headline,
+          template: config.template,
+          font: config.font,
+          imageModel: config.imageModel,
+          size: config.size,
+          url: config.url
+        });
+        setShowRatingModal(true);
+      }
       
     } catch (error) {
       console.error('Ошибка при скачивании/сохранении баннера:', error);
@@ -503,6 +523,23 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
     banners.forEach((banner, index) => {
       setTimeout(() => downloadBanner(banner.url, index), index * 500);
     });
+  };
+
+  const handleRatingSubmit = async (ratingData) => {
+    setIsSubmittingRating(true);
+    try {
+      await ratingAPI.submitRating({
+        bannerId: currentRatingBanner.bannerId,
+        ...ratingData,
+        context: currentRatingBanner
+      });
+      console.log('Rating submitted successfully');
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      throw error; // Re-throw to let the modal handle the error
+    } finally {
+      setIsSubmittingRating(false);
+    }
   };
 
   return (
@@ -750,6 +787,15 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
           </AnimatePresence>
         </CardContent>
       </Card>
+
+      {/* Rating Modal */}
+      <RatingModal
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        onSubmit={handleRatingSubmit}
+        bannerData={currentRatingBanner}
+        isSubmitting={isSubmittingRating}
+      />
     </div>
   );
 }

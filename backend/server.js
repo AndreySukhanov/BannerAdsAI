@@ -34,6 +34,17 @@ import {
   clearUserHistory
 } from './routes/history.js';
 
+import {
+  submitRating,
+  getUserRatings,
+  getUserRatingStats,
+  getBannerRating,
+  getRating,
+  getAIInsights,
+  getSystemRatingStats,
+  updateRating
+} from './routes/ratings.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -118,6 +129,16 @@ app.post('/api/generation', saveGeneration);
 app.delete('/api/generation/:generationId', deleteGeneration);
 app.get('/api/generation/:generationId/reproduce', reproduceGeneration);
 app.post('/api/banner/download', saveDownloadedBanner);
+
+// Rating API Routes
+app.post('/api/ratings/submit', submitRating);
+app.get('/api/ratings/user/:userId', getUserRatings);
+app.get('/api/ratings/user/:userId/stats', getUserRatingStats);
+app.get('/api/ratings/banner/:bannerId', getBannerRating);
+app.get('/api/ratings/:ratingId', getRating);
+app.put('/api/ratings/:ratingId', updateRating);
+app.get('/api/ratings/insights/ai', getAIInsights);
+app.get('/api/ratings/stats/system', getSystemRatingStats);
 
 // Error handling middleware (must have 4 args)
 app.use((err, req, res, next) => {

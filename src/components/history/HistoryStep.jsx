@@ -17,7 +17,8 @@ import {
   Clock,
   Image as ImageIcon,
   Type,
-  Globe
+  Globe,
+  Star
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -28,6 +29,7 @@ import {
   getUserStats,
   clearUserHistory
 } from "@/api/history-client";
+import { ratingAPI } from "@/api/rating-client";
 
 export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
   const [history, setHistory] = useState([]);
@@ -36,6 +38,7 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({});
   const [stats, setStats] = useState({});
+  const [ratingStats, setRatingStats] = useState({});
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [isClearing, setIsClearing] = useState(false);
 
@@ -85,9 +88,22 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
     }
   };
 
+  // Load rating stats
+  const loadRatingStats = async () => {
+    if (!sessionId) return;
+    
+    try {
+      const response = await ratingAPI.getUserRatingStats();
+      setRatingStats(response.data || {});
+    } catch (error) {
+      console.error('Failed to load rating stats:', error);
+    }
+  };
+
   useEffect(() => {
     loadHistory();
     loadStats();
+    loadRatingStats();
   }, [sessionId]);
 
   // Search handler
@@ -209,7 +225,7 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
       <Card className="step-card mb-6">
         <CardContent className="p-6">
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             {/* Популярные шрифты */}
             <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg">
               <h3 className="text-lg font-semibold text-purple-700 mb-3 flex items-center gap-2">
@@ -266,6 +282,57 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
                   </div>
                 )) : (
                   <div className="text-gray-500 text-sm">Нет данных</div>
+                )}
+              </div>
+            </div>
+
+            {/* Рейтинги */}
+            <div className="p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg">
+              <h3 className="text-lg font-semibold text-yellow-700 mb-3 flex items-center gap-2">
+                <Star className="w-5 h-5" />
+                Рейтинги
+              </h3>
+              <div className="space-y-2">
+                {ratingStats.totalRatings > 0 ? (
+                  <>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700">Средний рейтинг</span>
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-semibold">
+                          {ratingStats.avgRating}/5
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700">Всего оценок</span>
+                      <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs">
+                        {ratingStats.totalRatings}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700">Высокие (4-5)</span>
+                      <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs">
+                        {ratingStats.highRatings}
+                      </span>
+                    </div>
+                    {ratingStats.nps !== undefined && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-700">NPS</span>
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          ratingStats.nps > 0 
+                            ? 'bg-green-100 text-green-700' 
+                            : ratingStats.nps < 0 
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {ratingStats.nps > 0 ? '+' : ''}{ratingStats.nps}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-gray-500 text-sm">Нет оценок</div>
                 )}
               </div>
             </div>
