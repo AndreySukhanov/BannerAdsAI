@@ -55,8 +55,8 @@ export default function Layout({ children, showNavigation = false, onNavigate })
         .step-number {
           width: 32px;
           height: 32px;
-          border-radius: 50%;
-          background: var(--green-accent);
+          border-radius: 8px;
+          background: linear-gradient(to right, #a855f7, #ec4899);
           color: white;
           display: flex;
           align-items: center;
@@ -69,8 +69,8 @@ export default function Layout({ children, showNavigation = false, onNavigate })
         .step-check {
           width: 32px;
           height: 32px;
-          border-radius: 50%;
-          background: var(--green-accent);
+          border-radius: 8px;
+          background: linear-gradient(to right, #10b981, #059669);
           color: white;
           display: flex;
           align-items: center;

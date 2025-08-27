@@ -33,6 +33,7 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
         sessionId: sessionId
       });
       
+      
       // Extract text from headline objects
       const cleanHeadlines = result.headlines.map(h => h.text.toUpperCase());
       
@@ -184,7 +185,7 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
       <div className="step-header mb-6">
         <div className="step-number">4</div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Выберите заголовок</h2>
+          <h2 className="text-xl font-bold text-gray-900">Выберите заголовок и изображение</h2>
           <p className="text-gray-600">ИИ создал эффективные заголовки в разных стилях для вашего баннера</p>
         </div>
       </div>

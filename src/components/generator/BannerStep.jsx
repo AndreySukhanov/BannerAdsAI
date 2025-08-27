@@ -546,7 +546,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
     <div className="w-full max-w-6xl mx-auto">
       {/* Шаг 5: Готовые баннеры */}
       <div className="step-header mb-6 flex items-center gap-4">
-        <div className="step-check w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0">
+        <div className="step-check w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
           <Check className="w-4 h-4" />
         </div>
         <div>

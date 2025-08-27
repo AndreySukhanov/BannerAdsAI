@@ -199,7 +199,7 @@ Return ONLY 3 headlines, each on a new line, WITHOUT numbering or additional tex
           .trim()
           .toUpperCase();
       })
-      .filter(line => line.length > 0 && line.length <= 110)
+      .filter(line => line.length > 0 && line.length <= 120)
       .slice(0, 3);
   }
 

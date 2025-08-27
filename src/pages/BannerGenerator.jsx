@@ -51,8 +51,10 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
   const handleContinue = () => {
     if (currentStep === 1 && config.url) {
       setCurrentStep(2);
-    } else if (currentStep === 2) {
+    } else if (currentStep === 2 && config.size) {
       setCurrentStep(3);
+    } else if (currentStep === 3 && config.template) {
+      setCurrentStep(4);
     }
   };
 
@@ -63,7 +65,8 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
 
   const handleTemplateSelect = (template) => {
     setConfig({ ...config, template });
-    setCurrentStep(4);
+    // Не переходим автоматически к следующему этапу
+    // setCurrentStep(4);
   };
 
   if (currentStep >= 4) {
@@ -208,7 +211,8 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
               </div>
 
               <Button
-                onClick={() => setCurrentStep(3)}
+                onClick={handleContinue}
+                disabled={!config.size}
                 className="w-full h-12 gradient-button rounded-xl text-base font-semibold"
               >
                 Продолжить
@@ -274,7 +278,8 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
               </div>
 
               <Button
-                onClick={() => setCurrentStep(4)}
+                onClick={handleContinue}
+                disabled={!config.template}
                 className="w-full h-12 gradient-button rounded-xl text-base font-semibold"
               >
                 Сгенерировать заголовки
@@ -285,23 +290,47 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
         </motion.div>
       )}
 
-      {/* Предпросмотр следующих шагов */}
+      {/* Предпросмотр следующих шагов - показываем только то, что еще не доступно */}
       <div className="space-y-6 opacity-50">
-        <div className="step-header">
-          <div className="step-number">4</div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Выберите заголовок</h2>
-            <p className="text-gray-600">Определите самый привлекательный вариант для вашего баннера</p>
+        {currentStep < 2 && (
+          <div className="step-header">
+            <div className="step-number">2</div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Выберите размер баннера</h2>
+              <p className="text-gray-600">Определите формат будущего рекламного баннера</p>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="step-header">
-          <div className="step-number">5</div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Готовые баннеры</h2>
-            <p className="text-gray-600">Ваши персонализированные рекламные креативы готовы</p>
+        {currentStep < 3 && (
+          <div className="step-header">
+            <div className="step-number">3</div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Выберите шаблон оформления</h2>
+              <p className="text-gray-600">Определите цветовую схему для вашего баннера</p>
+            </div>
           </div>
-        </div>
+        )}
+
+        {currentStep < 4 && (
+          <div className="step-header">
+            <div className="step-number">4</div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Выберите заголовок и изображение</h2>
+              <p className="text-gray-600">Определите самый привлекательный вариант для вашего баннера</p>
+            </div>
+          </div>
+        )}
+
+        {currentStep < 5 && (
+          <div className="step-header">
+            <div className="step-number">5</div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Готовые баннеры</h2>
+              <p className="text-gray-600">Ваши персонализированные рекламные креативы готовы</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
