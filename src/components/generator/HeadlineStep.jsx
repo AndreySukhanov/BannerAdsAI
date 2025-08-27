@@ -354,6 +354,60 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                           )}
                         </div>
                       </div>
+                      
+                      {/* Feedback Input for specific headline */}
+                      <AnimatePresence>
+                        {showFeedbackInput && feedbackForHeadline === index && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-4 p-4 border border-green-200 rounded-xl bg-green-50"
+                          >
+                            <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                              Как улучшить заголовок "{headline.substring(0, 50)}..."?
+                            </Label>
+                            <p className="text-xs text-gray-500 mb-3">
+                              Например: "сделать более агрессивным", "добавить юмор", "более профессионально", "проще для понимания"
+                            </p>
+                            <div className="flex gap-2">
+                              <Input
+                                value={feedbackText}
+                                onChange={(e) => setFeedbackText(e.target.value)}
+                                placeholder="Опишите ваши пожелания..."
+                                className="flex-1"
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleRegenerateHeadline(feedbackForHeadline);
+                                  }
+                                }}
+                              />
+                              <Button
+                                onClick={() => handleRegenerateHeadline(feedbackForHeadline)}
+                                disabled={isRegenerating || !feedbackText.trim()}
+                                className="px-6"
+                              >
+                                {isRegenerating ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  'Применить'
+                                )}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setShowFeedbackInput(false);
+                                  setFeedbackText('');
+                                  setFeedbackForHeadline(null);
+                                }}
+                                className="px-4"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </motion.div>
                   );
                 })}
@@ -540,59 +594,6 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
             </motion.div>
           )}
 
-          {/* Feedback Input for Regeneration */}
-          <AnimatePresence>
-            {showFeedbackInput && feedbackForHeadline !== null && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mb-4 p-4 border border-green-200 rounded-xl bg-green-50"
-              >
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Как улучшить заголовок "{headlines[feedbackForHeadline]?.substring(0, 50)}..."?
-                </Label>
-                <p className="text-xs text-gray-500 mb-3">
-                  Например: "сделать более агрессивным", "добавить юмор", "более профессионально", "проще для понимания"
-                </p>
-                <div className="flex gap-2">
-                  <Input
-                    value={feedbackText}
-                    onChange={(e) => setFeedbackText(e.target.value)}
-                    placeholder="Опишите ваши пожелания..."
-                    className="flex-1"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleRegenerateHeadline(feedbackForHeadline);
-                      }
-                    }}
-                  />
-                  <Button
-                    onClick={() => handleRegenerateHeadline(feedbackForHeadline)}
-                    disabled={isRegenerating || !feedbackText.trim()}
-                    className="px-6"
-                  >
-                    {isRegenerating ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      'Применить'
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowFeedbackInput(false);
-                      setFeedbackText('');
-                      setFeedbackForHeadline(null);
-                    }}
-                    className="px-4"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           <div className="flex gap-4">
             <Button
