@@ -764,19 +764,4 @@ const backupRatings = async () => {
 
 ---
 
-## 📞 Поддержка и контакты
-
-### Техническая поддержка
-- **Email**: tech-support@banneradsai.com
-- **GitHub Issues**: https://github.com/AndreySukhanov/BannerAdsAI/issues
-- **Documentation**: https://docs.banneradsai.com/ai-insights
-
-### Разработчики
-- **Lead Developer**: Andrey Sukhanov
-- **AI/ML Specialist**: TBD
-- **Data Analyst**: TBD
-
----
-
-*Документация актуальна для версии v2.3.0*  
-*Последнее обновление: 2025-01-15*
+*Документация актуальна для версии v2.3.0* 
