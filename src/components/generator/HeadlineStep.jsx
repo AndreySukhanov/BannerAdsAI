@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, RefreshCw, Check, ArrowRight, ArrowLeft, Target, Edit3, Save, X, Type, Image } from "lucide-react";
+import { Loader2, RefreshCw, Check, ArrowRight, ArrowLeft, Target, Edit3, Save, X, Type, Image, Sparkles } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
@@ -250,7 +250,7 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                       onClick={() => editingIndex !== index && selectHeadline(headline)}
-                      className={`w-full p-5 rounded-xl border-2 text-left transition-all hover:shadow-lg cursor-pointer ${
+                      className={`w-full p-6 rounded-xl border-2 text-left transition-all hover:shadow-lg cursor-pointer ${
                         selectedHeadline === headline
                           ? 'border-blue-500 bg-blue-50 shadow-lg'
                           : 'border-gray-200 hover:border-gray-300'
@@ -310,7 +310,7 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                                 <p className="font-medium text-gray-900 text-base leading-tight flex-1 pr-2">
                                   {headline}
                                 </p>
-                                <div className="flex gap-1">
+                                <div className="flex gap-2">
                                   <Button
                                     size="sm"
                                     variant="ghost"
@@ -318,9 +318,10 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                                       e.stopPropagation();
                                       startEditing(index, headline);
                                     }}
-                                    className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                                    className="h-8 w-8 p-0 rounded-lg hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-all"
+                                    title="Редактировать заголовок"
                                   >
-                                    <Edit3 className="w-3 h-3" />
+                                    <Edit3 className="w-4 h-4" />
                                   </Button>
                                   <Button
                                     size="sm"
@@ -330,23 +331,24 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                                       setFeedbackForHeadline(index);
                                       setShowFeedbackInput(true);
                                     }}
-                                    className="h-6 w-6 p-0 opacity-60 hover:opacity-100 text-green-600"
+                                    className="h-8 w-8 p-0 rounded-lg hover:bg-green-100 text-green-600 hover:text-green-700 transition-all flex items-center justify-center"
+                                    title="Улучшить заголовок"
                                   >
-                                    <Target className="w-3 h-3" />
+                                    <Sparkles className="w-4 h-4" />
                                   </Button>
                                 </div>
                               </div>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                   <span className="text-sm text-gray-500">{headline.length}/100 символов</span>
-                                  <Badge className={`${clickability.color} font-medium`}>
+                                  <Badge className={`${clickability.color} font-medium pointer-events-none`}>
                                     {clickability.label}
                                   </Badge>
-                                  <Badge className={`${style.color} font-medium`}>
+                                  <Badge className={`${style.color} font-medium pointer-events-none`}>
                                     {style.label}
                                   </Badge>
                                 </div>
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="outline" className="text-xs pointer-events-none">
                                   Вариант {index + 1}
                                 </Badge>
                               </div>
@@ -420,7 +422,7 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-4 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100"
+              className="space-y-4 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100"
             >
               <div className="flex items-center gap-3">
                 <Type className="w-5 h-5 text-indigo-600" />
@@ -475,10 +477,10 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-4 p-6 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border border-green-100"
+              className="space-y-4 p-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100 mt-6"
             >
               <div className="flex items-center gap-3">
-                <Image className="w-5 h-5 text-green-600" />
+                <Image className="w-5 h-5 text-indigo-600" />
                 <Label className="text-base font-semibold text-gray-900">
                   Выберите модель генерации изображений
                 </Label>
@@ -533,62 +535,42 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
+              className="space-y-4 mt-6 mb-6"
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                   <Target className="w-5 h-5 text-purple-600" />
                   Предпросмотр баннера
                 </h3>
-                <Badge variant="secondary" className="text-xs">
+                <Badge className="text-xs bg-green-100 text-green-700 border-green-200 pointer-events-none">
                   Live Preview
                 </Badge>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-gray-700">
-                    {config.size} - {config.template === 'blue_white' ? 'Синий стиль' : 'Красный стиль'}
-                  </div>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="text-center">
                   <BannerPreview
                     headline={editingIndex !== null ? editedHeadline : selectedHeadline}
                     font={config.font || 'roboto'}
                     template={config.template}
                     size={config.size}
-                    className="w-full max-w-sm"
+                    className="mx-auto"
                   />
                 </div>
                 
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-gray-700">Детали предпросмотра</div>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex justify-between">
-                      <span>Заголовок:</span>
-                      <span className="font-medium">
-                        {(editingIndex !== null ? editedHeadline : selectedHeadline).length} символов
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Шрифт:</span>
-                      <span className="font-medium">{config.font || 'roboto'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Размер:</span>
-                      <span className="font-medium">{config.size}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Стиль:</span>
-                      <span className="font-medium">
-                        {config.template === 'blue_white' ? 'Деловой' : 'Энергичный'}
-                      </span>
-                    </div>
+                <div className="text-center space-y-2">
+                  <div className="text-sm text-gray-600">
+                    {config.size} • {config.template === 'blue_white' ? 'Деловой стиль' : 'Энергичный стиль'} • {config.font || 'roboto'}
                   </div>
+                  <div className="text-xs text-gray-500">
+                    {(editingIndex !== null ? editedHeadline : selectedHeadline).length}/100 символов
+                  </div>
+                </div>
                   
-                  <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-100">
-                    <p className="text-xs text-purple-700">
-                      💡 Это предварительный просмотр. Финальные баннеры будут созданы с уникальными AI-изображениями фона.
-                    </p>
-                  </div>
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 max-w-md">
+                  <p className="text-xs text-blue-700 text-center">
+                    Предварительный просмотр. Финальные баннеры будут с уникальными AI-изображениями
+                  </p>
                 </div>
               </div>
             </motion.div>
