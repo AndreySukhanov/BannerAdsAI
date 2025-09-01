@@ -25,10 +25,11 @@ export class ImageAgent {
             ? optimizedPrompt.substring(0, 997) + '...'
             : optimizedPrompt;
             
-          const imageResult = await callRecraftImageGeneration(finalPrompt, model, {
+          // Retry логика для повышения надежности
+          const imageResult = await this.retryImageGeneration(finalPrompt, model, {
             size: '1024x1024',
             n: 1
-          });
+          }, 3); // максимум 3 попытки
           
           return {
             id: index + 1,
@@ -41,7 +42,7 @@ export class ImageAgent {
             generatedAt: new Date().toISOString()
           };
         } catch (error) {
-          console.error(`[${this.name}] Failed to generate image ${index + 1}:`, error.message);
+          console.error(`[${this.name}] Failed to generate image ${index + 1} after retries:`, error.message);
           return null;
         }
       });
@@ -49,6 +50,18 @@ export class ImageAgent {
       const images = (await Promise.all(imagePromises)).filter(img => img !== null);
       
       console.log(`[${this.name}] Successfully generated ${images.length}/${count} images`);
+      
+      // Логирование предупреждения если не все изображения созданы
+      if (images.length < count) {
+        const failedCount = count - images.length;
+        console.warn(`[${this.name}] Failed to generate ${failedCount} out of ${count} images`);
+      }
+      
+      // Если ни одного изображения не создалось, пробуем создать fallback изображения
+      if (images.length === 0) {
+        console.warn(`[${this.name}] No images generated, creating fallback images`);
+        return await this.generateFallbackImages(content, headlines, count, model);
+      }
       
       return images;
 
@@ -204,6 +217,17 @@ Return ${count} detailed photographic descriptions, one per line, numbered 1-${c
       
       console.log(`[${this.name}] Successfully regenerated ${images.length}/${count} images`);
       
+      // Логирование предупреждения если не все изображения регенерированы
+      if (images.length < count) {
+        const failedCount = count - images.length;
+        console.warn(`[${this.name}] Failed to regenerate ${failedCount} out of ${count} images`);
+      }
+      
+      // Если ни одного изображения не регенерировалось, возвращаем пустой массив с предупреждением
+      if (images.length === 0) {
+        console.error(`[${this.name}] No images regenerated with feedback: "${userFeedback}"`);
+      }
+      
       return images;
 
     } catch (error) {
@@ -299,5 +323,90 @@ Return ${count} detailed photographic descriptions, one per line, numbered 1-${c
     ];
 
     return fallbackPrompts.slice(0, count);
+  }
+
+  // Создать fallback изображения с простыми градиентами
+  async generateFallbackImages(content, headlines, count, model) {
+    console.log(`[${this.name}] Generating ${count} fallback images`);
+    
+    const fallbackImages = [];
+    const colors = [
+      ['#4f46e5', '#7c3aed'], // indigo to purple
+      ['#059669', '#0891b2'], // emerald to cyan
+      ['#dc2626', '#ea580c'], // red to orange
+      ['#1f2937', '#4b5563'], // gray to slate
+      ['#7c2d12', '#a16207']  // brown to amber
+    ];
+
+    for (let i = 0; i < count; i++) {
+      const [color1, color2] = colors[i % colors.length];
+      
+      // Создаем простое изображение с градиентом и текстом
+      fallbackImages.push({
+        id: i + 1,
+        url: this.createGradientImageDataUrl(color1, color2, content.title || 'Banner'),
+        prompt: `Fallback gradient image ${i + 1}`,
+        enhancedPrompt: `Simple gradient background from ${color1} to ${color2}`,
+        optimizedPrompt: `Gradient fallback`,
+        revisedPrompt: `Fallback gradient background`,
+        model: model,
+        isFallback: true,
+        generatedAt: new Date().toISOString()
+      });
+    }
+    
+    console.log(`[${this.name}] Created ${fallbackImages.length} fallback images`);
+    return fallbackImages;
+  }
+
+  // Создать Data URL для простого градиентного изображения
+  createGradientImageDataUrl(color1, color2, title) {
+    // Создаем SVG с градиентом и текстом
+    const svg = `
+      <svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:${color1};stop-opacity:1" />
+            <stop offset="100%" style="stop-color:${color2};stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grad)" />
+        <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" 
+              fill="white" font-size="48" font-family="Arial, sans-serif" 
+              font-weight="bold" opacity="0.3">
+          ${title.substring(0, 30)}
+        </text>
+      </svg>
+    `;
+    
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+  }
+
+  // Retry механизм для генерации изображений
+  async retryImageGeneration(prompt, model, options, maxRetries = 3) {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`[${this.name}] Image generation attempt ${attempt}/${maxRetries}`);
+        const result = await callRecraftImageGeneration(prompt, model, options);
+        return result;
+      } catch (error) {
+        lastError = error;
+        console.warn(`[${this.name}] Attempt ${attempt} failed:`, error.message);
+        
+        // Если ошибка не retryable или это последняя попытка - прекращаем
+        if (!error.retryable || attempt === maxRetries) {
+          break;
+        }
+        
+        // Экспоненциальная задержка между попытками
+        const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        console.log(`[${this.name}] Retrying in ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+    
+    throw lastError;
   }
 }

@@ -272,9 +272,40 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
         }, 'image/png');
       };
 
-      img.onerror = () => {
-        console.error("Error loading image for banner:", imageUrl);
-        resolve(null); // Возвращаем null в случае ошибки загрузки изображения
+      img.onerror = (error) => {
+        console.error("Error loading image for banner:", imageUrl, error);
+        
+        // Создаем fallback изображение с градиентом
+        const fallbackCanvas = document.createElement('canvas');
+        const fallbackCtx = fallbackCanvas.getContext('2d');
+        const [width, height] = size.split('x').map(Number);
+        
+        fallbackCanvas.width = width;
+        fallbackCanvas.height = height;
+        
+        // Создаем простой градиент
+        const gradient = fallbackCtx.createLinearGradient(0, 0, width, height);
+        gradient.addColorStop(0, '#6b7280'); // gray-500
+        gradient.addColorStop(1, '#374151'); // gray-700
+        
+        fallbackCtx.fillStyle = gradient;
+        fallbackCtx.fillRect(0, 0, width, height);
+        
+        // Добавляем текст об ошибке
+        fallbackCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        fallbackCtx.font = 'bold 16px Arial';
+        fallbackCtx.textAlign = 'center';
+        fallbackCtx.fillText('Изображение недоступно', width / 2, height / 2);
+        
+        fallbackCanvas.toBlob((blob) => {
+          if (blob) {
+            const fallbackUrl = URL.createObjectURL(blob);
+            console.log("Created fallback image for failed load:", fallbackUrl);
+            resolve(fallbackUrl);
+          } else {
+            resolve(null);
+          }
+        }, 'image/png');
       };
 
       img.src = imageUrl;
@@ -374,6 +405,13 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
       
       console.log('Banners generated successfully:', generatedBanners.length);
       
+      // Предупреждение если не все баннеры созданы
+      if (generatedBanners.length < result.banners.length) {
+        const failedCount = result.banners.length - generatedBanners.length;
+        console.warn(`Failed to create ${failedCount} out of ${result.banners.length} banners`);
+        // Можно добавить toast уведомление для пользователя
+      }
+      
     } catch (error) {
       console.error('Ошибка генерации баннеров:', error);
     }
@@ -441,6 +479,13 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
       setShowImageFeedback(false);
       setImageFeedback('');
       console.log('Images regenerated successfully:', generatedBanners.length);
+      
+      // Предупреждение если не все баннеры регенерированы
+      if (generatedBanners.length < result.images.length) {
+        const failedCount = result.images.length - generatedBanners.length;
+        console.warn(`Failed to regenerate ${failedCount} out of ${result.images.length} banners`);
+        // Можно добавить toast уведомление для пользователя
+      }
       
     } catch (error) {
       console.error('Ошибка регенерации изображений:', error);

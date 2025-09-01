@@ -71,7 +71,8 @@ export async function callRecraftImageGeneration(prompt, model = 'recraftv3', op
         'Authorization': `Bearer ${RECRAFT_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(requestData)
+      body: JSON.stringify(requestData),
+      timeout: 60000 // 60 секунд таймаут
     });
 
     if (!response.ok) {
@@ -81,13 +82,26 @@ export async function callRecraftImageGeneration(prompt, model = 'recraftv3', op
       error.status = response.status;
       error.type = 'api';
       error.details = errorData;
+      error.retryable = [429, 500, 502, 503, 504].includes(response.status);
       throw error;
     }
 
     const result = await response.json();
     
     if (!result.data || !result.data[0]) {
-      throw new Error('Неожиданный формат ответа от Recraft API');
+      const error = new Error('Неожиданный формат ответа от Recraft API');
+      error.code = 'INVALID_RESPONSE';
+      error.type = 'api';
+      error.retryable = false;
+      throw error;
+    }
+
+    if (!result.data[0].url) {
+      const error = new Error('Recraft API не вернул URL изображения');
+      error.code = 'NO_IMAGE_URL';
+      error.type = 'api';
+      error.retryable = false;
+      throw error;
     }
 
     console.log(`[Recraft] Image generated successfully with model: ${model}`);
@@ -102,6 +116,13 @@ export async function callRecraftImageGeneration(prompt, model = 'recraftv3', op
 
   } catch (error) {
     console.error('[Recraft] Image generation failed:', error);
+    
+    // Добавляем информацию о том, можно ли повторить запрос
+    if (error.name === 'AbortError' || error.code === 'ECONNRESET') {
+      error.retryable = true;
+      error.type = 'network';
+    }
+    
     throw error;
   }
 }
