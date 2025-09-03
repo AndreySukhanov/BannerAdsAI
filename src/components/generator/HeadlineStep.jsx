@@ -34,19 +34,23 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
       });
       
       
-      // Extract text from headline objects
-      const cleanHeadlines = result.headlines.map(h => h.text.toUpperCase());
+      // Keep full headline objects with translation data
+      const processedHeadlines = result.headlines.map(h => ({
+        text: h.text?.toUpperCase() || h.toUpperCase(),
+        language: h.language || 'ru',
+        russianTranslation: h.russianTranslation
+      }));
       
-      setHeadlines(cleanHeadlines);
+      setHeadlines(processedHeadlines);
       setConfig({
         ...config,
-        generated_headlines: cleanHeadlines,
+        generated_headlines: processedHeadlines,
         webContent: result.webContent,
         taskId: result.taskId,
         status: 'selecting_headline'
       });
       
-      console.log('Headlines generated successfully:', cleanHeadlines);
+      console.log('Headlines generated successfully:', processedHeadlines);
     } catch (error) {
       console.error('Ошибка генерации заголовков:', error);
       
@@ -67,21 +71,34 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
   }, [headlines.length, isGenerating, generateHeadlines]);
 
   const selectHeadline = (headline) => {
-    setSelectedHeadline(headline);
+    const headlineText = typeof headline === 'string' ? headline : headline.text;
+    setSelectedHeadline(headlineText);
     setConfig({
       ...config,
-      selected_headline: headline
+      selected_headline: headlineText,
+      selected_headline_object: headline
     });
   };
 
   const startEditing = (index, headline) => {
     setEditingIndex(index);
-    setEditedHeadline(headline);
+    const headlineText = typeof headline === 'string' ? headline : headline.text;
+    setEditedHeadline(headlineText);
   };
 
   const saveEdit = (index) => {
     const updatedHeadlines = [...headlines];
-    updatedHeadlines[index] = editedHeadline.toUpperCase();
+    const originalHeadline = headlines[index];
+    const headlineText = typeof originalHeadline === 'string' ? originalHeadline : originalHeadline.text;
+    
+    // Update the headline while preserving translation data
+    updatedHeadlines[index] = typeof originalHeadline === 'string' 
+      ? editedHeadline.toUpperCase()
+      : {
+          ...originalHeadline,
+          text: editedHeadline.toUpperCase()
+        };
+    
     setHeadlines(updatedHeadlines);
     
     // Update config
@@ -91,12 +108,13 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
     });
     
     // If this was the selected headline, update it too
-    if (selectedHeadline === headlines[index]) {
+    if (selectedHeadline === headlineText) {
       setSelectedHeadline(editedHeadline.toUpperCase());
       setConfig({
         ...config,
         generated_headlines: updatedHeadlines,
-        selected_headline: editedHeadline.toUpperCase()
+        selected_headline: editedHeadline.toUpperCase(),
+        selected_headline_object: updatedHeadlines[index]
       });
     }
     
@@ -112,24 +130,30 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
 
     setIsRegenerating(true);
     try {
-      console.log('Regenerating headline with feedback:', feedbackText, 'for headline:', headlines[headlineIndex]);
+      const currentHeadline = headlines[headlineIndex];
+      const currentHeadlineText = typeof currentHeadline === 'string' ? currentHeadline : currentHeadline.text;
+      console.log('Regenerating headline with feedback:', feedbackText, 'for headline:', currentHeadlineText);
       
       const result = await regenerateHeadlines({
         url: config.url,
         template: config.template,
-        currentHeadlines: [headlines[headlineIndex]], // Только один выбранный заголовок
+        currentHeadlines: [currentHeadlineText], // Только один выбранный заголовок
         userFeedback: feedbackText,
         webContent: config.webContent,
         sessionId: sessionId
       });
       
-      // Extract text from headline objects
-      const cleanHeadlines = result.headlines.map(h => h.text.toUpperCase());
+      // Keep full headline objects with translation data for regenerated headlines
+      const processedHeadlines = result.headlines.map(h => ({
+        text: h.text?.toUpperCase() || h.toUpperCase(),
+        language: h.language || 'ru',
+        russianTranslation: h.russianTranslation
+      }));
       
-      setHeadlines(cleanHeadlines);
+      setHeadlines(processedHeadlines);
       setConfig({
         ...config,
-        generated_headlines: cleanHeadlines,
+        generated_headlines: processedHeadlines,
         webContent: result.webContent,
         taskId: result.taskId
       });
@@ -137,7 +161,7 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
       setShowFeedbackInput(false);
       setFeedbackText('');
       setFeedbackForHeadline(null);
-      console.log('Headline regenerated successfully:', cleanHeadlines);
+      console.log('Headline regenerated successfully:', processedHeadlines);
       
     } catch (error) {
       console.error('Ошибка регенерации заголовка:', error);
@@ -242,7 +266,10 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                 className="space-y-4 mb-6"
               >
                 {headlines.map((headline, index) => {
-                  const clickability = getClickabilityScore(headline);
+                  const headlineText = typeof headline === 'string' ? headline : headline.text;
+                  const headlineLanguage = typeof headline === 'string' ? 'ru' : headline.language;
+                  const russianTranslation = typeof headline === 'string' ? null : headline.russianTranslation;
+                  const clickability = getClickabilityScore(headlineText);
                   const style = getHeadlineStyle(index);
                   return (
                     <motion.div
@@ -252,18 +279,18 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                       transition={{ delay: index * 0.1 }}
                       onClick={() => editingIndex !== index && selectHeadline(headline)}
                       className={`w-full p-6 rounded-xl border-2 text-left transition-all hover:shadow-lg cursor-pointer ${
-                        selectedHeadline === headline
+                        selectedHeadline === headlineText
                           ? 'border-blue-500 bg-blue-50 shadow-lg'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <div className="flex items-start gap-4">
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 ${
-                          selectedHeadline === headline
+                          selectedHeadline === headlineText
                             ? 'border-blue-500 bg-blue-500'
                             : 'border-gray-300'
                         }`}>
-                          {selectedHeadline === headline && <Check className="w-4 h-4 text-white" />}
+                          {selectedHeadline === headlineText && <Check className="w-4 h-4 text-white" />}
                         </div>
                         <div className="flex-1">
                           {editingIndex === index ? (
@@ -308,9 +335,24 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                           ) : (
                             <>
                               <div className="flex items-start justify-between mb-3">
-                                <p className="font-medium text-gray-900 text-base leading-tight flex-1 pr-2">
-                                  {headline}
-                                </p>
+                                <div className="flex-1 pr-2">
+                                  <p className="font-medium text-gray-900 text-base leading-tight">
+                                    {headlineText}
+                                  </p>
+                                  {russianTranslation && headlineLanguage !== 'ru' && (
+                                    <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                                      <div className="flex items-center gap-1 mb-1">
+                                        <span className="text-xs font-medium text-blue-600">Перевод:</span>
+                                        <Badge className="text-xs bg-blue-100 text-blue-700 border-blue-200 px-2 py-0.5">
+                                          {headlineLanguage === 'en' ? 'EN' : headlineLanguage.toUpperCase()}
+                                        </Badge>
+                                      </div>
+                                      <p className="text-sm text-blue-800 leading-tight">
+                                        {russianTranslation}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
                                 <div className="flex gap-2">
                                   <Button
                                     size="sm"
@@ -341,7 +383,7 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                               </div>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                  <span className="text-sm text-gray-500">{headline.length}/100 символов</span>
+                                  <span className="text-sm text-gray-500">{headlineText.length}/100 символов</span>
                                   <Badge className={`${clickability.color} font-medium pointer-events-none`}>
                                     {clickability.label}
                                   </Badge>
@@ -368,7 +410,7 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                             className="mt-4 p-4 border border-green-200 rounded-xl bg-green-50"
                           >
                             <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                              Как улучшить заголовок "{headline.substring(0, 50)}..."?
+                              Как улучшить заголовок "{headlineText.substring(0, 50)}..."?
                             </Label>
                             <p className="text-xs text-gray-500 mb-3">
                               Например: "сделать более агрессивным", "добавить юмор", "более профессионально", "проще для понимания"

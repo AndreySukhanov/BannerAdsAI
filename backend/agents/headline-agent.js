@@ -97,7 +97,7 @@ export class HeadlineAgent {
 
 ТРЕБОВАНИЯ:
 - Стиль: ${templateStyle}
-- Каждый заголовок 90-100 символов (стремись к 100)
+- Каждый заголовок СТРОГО до 100 символов включительно (не более 100)
 - 3 разных подхода:
   1. ПРЯМАЯ ВЫГОДА - что получит клиент
   2. РЕШЕНИЕ ПРОБЛЕМЫ - какую проблему решаем
@@ -116,7 +116,7 @@ Titres principaux: ${content.headings.map(h => h.text).join(', ')}
 
 EXIGENCES:
 - Style: ${templateStyle}
-- Chaque titre 90-100 caractères (visez 100)
+- Chaque titre STRICTEMENT jusqu'à 100 caractères inclus (pas plus de 100)
 - 3 approches différentes:
   1. AVANTAGE DIRECT - ce que le client obtiendra
   2. RÉSOLUTION DE PROBLÈME - quel problème nous résolvons
@@ -135,7 +135,7 @@ Hauptüberschriften: ${content.headings.map(h => h.text).join(', ')}
 
 ANFORDERUNGEN:
 - Stil: ${templateStyle}
-- Jede Schlagzeile 90-100 Zeichen (streben Sie 100 an)
+- Jede Schlagzeile STRENG bis zu 100 Zeichen inklusive (nicht mehr als 100)
 - 3 verschiedene Ansätze:
   1. DIREKTER NUTZEN - was der Kunde erhalten wird
   2. PROBLEMLÖSUNG - welches Problem wir lösen
@@ -173,7 +173,7 @@ Main headings: ${content.headings.map(h => h.text).join(', ')}
 
 REQUIREMENTS:
 - Style: ${templateStyle}
-- Each headline 90-100 characters (aim for 100)
+- Each headline STRICTLY up to 100 characters inclusive (no more than 100)
 - 3 different approaches:
   1. DIRECT BENEFIT - what the client will get
   2. PROBLEM SOLVING - what problem we solve
@@ -199,7 +199,15 @@ Return ONLY 3 headlines, each on a new line, WITHOUT numbering or additional tex
           .trim()
           .toUpperCase();
       })
-      .filter(line => line.length > 0 && line.length <= 120)
+      .filter(line => line.length > 0)
+      .map(line => {
+        // Ensure headline is exactly 100 characters or less
+        if (line.length > 100) {
+          // Truncate at 97 characters and add "..."
+          return line.substring(0, 97) + '...';
+        }
+        return line;
+      })
       .slice(0, 3);
   }
 
@@ -338,7 +346,7 @@ ${headlinesText}
 
 ТРЕБОВАНИЯ:
 - Стиль: ${templateStyle}
-- Каждый заголовок 90-100 символов
+- Каждый заголовок СТРОГО до 100 символов включительно (не более 100)
 - Учти пожелания пользователя
 - Сохрани суть контента
 - 3 разных подхода: выгода, решение проблемы, призыв к действию
@@ -360,7 +368,7 @@ USER FEEDBACK: "${userFeedback}"
 
 REQUIREMENTS:
 - Style: ${templateStyle}
-- Each headline 90-100 characters
+- Each headline STRICTLY up to 100 characters inclusive (no more than 100)
 - Apply user feedback
 - Keep content essence
 - 3 different approaches: benefit, problem-solving, call-to-action
@@ -382,12 +390,79 @@ USER FEEDBACK: "${userFeedback}"
 
 REQUIREMENTS:
 - Style: ${templateStyle}
-- Each headline 90-100 characters
+- Each headline STRICTLY up to 100 characters inclusive (no more than 100)
 - Apply user feedback
 - Keep content essence
 
 RESPONSE FORMAT:
 Return ONLY 3 new headlines, each on a new line, WITHOUT numbering.`;
+    }
+  }
+
+  // Перевод заголовков на русский язык для медиабайеров
+  async translateHeadlines(headlines) {
+    console.log(`[${this.name}] Translating ${headlines.length} headlines to Russian`);
+    
+    try {
+      // Отфильтруем заголовки, которые уже на русском языке
+      const nonRussianHeadlines = headlines.filter(headline => {
+        return headline.language && headline.language !== 'ru';
+      });
+
+      if (nonRussianHeadlines.length === 0) {
+        console.log(`[${this.name}] All headlines are already in Russian, skipping translation`);
+        return headlines; // Все заголовки уже на русском
+      }
+
+      // Создаем промпт для перевода
+      const headlinesForTranslation = nonRussianHeadlines.map(h => h.text).join('\n');
+      
+      const systemPrompt = `You are a professional translator specializing in marketing content. 
+Your task is to translate advertising headlines from any language to Russian, preserving the marketing impact and emotional appeal.`;
+
+      const userPrompt = `Translate these advertising headlines to Russian. Keep the same marketing style, emotional impact, and call-to-action power.
+
+HEADLINES TO TRANSLATE:
+${headlinesForTranslation}
+
+REQUIREMENTS:
+- Preserve marketing impact and emotional appeal
+- Keep STRICTLY up to 100 characters inclusive (no more than 100)
+- Use natural, fluent Russian
+- Maintain the advertising tone
+- Each headline should sound native to Russian speakers
+
+RESPONSE FORMAT:
+Return ONLY the translated headlines, each on a new line, in the same order, WITHOUT numbering or additional text.`;
+
+      const response = await callOpenAI(systemPrompt, userPrompt);
+      const translatedTexts = response
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+
+      // Добавляем переводы к соответствующим заголовкам
+      let translationIndex = 0;
+      const result = headlines.map(headline => {
+        if (headline.language && headline.language !== 'ru') {
+          const translation = translatedTexts[translationIndex];
+          translationIndex++;
+          
+          return {
+            ...headline,
+            russianTranslation: translation || headline.text
+          };
+        }
+        return headline; // Русские заголовки остаются без изменений
+      });
+
+      console.log(`[${this.name}] Successfully translated ${nonRussianHeadlines.length} headlines`);
+      return result;
+
+    } catch (error) {
+      console.error(`[${this.name}] Error translating headlines:`, error);
+      // В случае ошибки возвращаем исходные заголовки
+      return headlines;
     }
   }
 }

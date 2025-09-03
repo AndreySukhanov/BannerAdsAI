@@ -48,11 +48,15 @@ export class CoordinatorAgent {
         language: webContent.detectedLanguage || 'ru'
       });
 
+      // Phase 2.5: Translate non-Russian headlines for media buyers
+      console.log(`[Coordinator] Phase 2.5: Translating headlines`);
+      const translatedHeadlines = await this.agents.headline.translateHeadlines(headlines);
+
       // Phase 3: Generate image prompts and create images
       console.log(`[Coordinator] Phase 3: Image generation`);
       const images = await this.agents.image.generateImages({
         content: webContent,
-        headlines: headlines,
+        headlines: translatedHeadlines,
         count: request.uploadedImage ? 2 : 3,
         model: request.imageModel || 'recraftv3'
       });
@@ -60,7 +64,7 @@ export class CoordinatorAgent {
       // Phase 4: Create final banners by combining images and headlines
       console.log(`[Coordinator] Phase 4: Banner composition`);
       const banners = await this.agents.banner.createBanners({
-        headlines: headlines,
+        headlines: translatedHeadlines,
         images: images,
         uploadedImage: request.uploadedImage,
         size: request.size,
@@ -70,7 +74,7 @@ export class CoordinatorAgent {
 
       const result = {
         taskId,
-        headlines,
+        headlines: translatedHeadlines,
         images,
         banners,
         webContent: {
@@ -117,7 +121,11 @@ export class CoordinatorAgent {
         language: webContent.detectedLanguage || 'ru'
       });
 
-      const result = { taskId, headlines, webContent };
+      // Translate non-Russian headlines for media buyers
+      console.log(`[Coordinator] Translating headlines for media buyer comprehension`);
+      const translatedHeadlines = await this.agents.headline.translateHeadlines(headlines);
+
+      const result = { taskId, headlines: translatedHeadlines, webContent };
       this.completeTask(taskId, result);
       
       return result;
@@ -193,7 +201,11 @@ export class CoordinatorAgent {
         userFeedback: request.userFeedback
       });
       
-      const result = { taskId, headlines, webContent };
+      // Translate regenerated non-Russian headlines for media buyers
+      console.log(`[Coordinator] Translating regenerated headlines for media buyer comprehension`);
+      const translatedHeadlines = await this.agents.headline.translateHeadlines(headlines);
+      
+      const result = { taskId, headlines: translatedHeadlines, webContent };
       this.completeTask(taskId, result);
       
       return result;
