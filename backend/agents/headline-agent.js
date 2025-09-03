@@ -16,9 +16,12 @@ export class HeadlineAgent {
       const response = await callOpenAI(systemPrompt, userPrompt);
       const headlines = this.parseHeadlines(response);
       
-      console.log(`[${this.name}] Generated ${headlines.length} headlines`);
+      // Check and fix headlines that are too long
+      const validatedHeadlines = await this.validateHeadlineLengths(headlines, language);
       
-      return headlines.map((text, index) => ({
+      console.log(`[${this.name}] Generated ${validatedHeadlines.length} headlines`);
+      
+      return validatedHeadlines.map((text, index) => ({
         id: index + 1,
         text: text,
         style: this.getHeadlineStyle(index),
@@ -200,14 +203,6 @@ Return ONLY 3 headlines, each on a new line, WITHOUT numbering or additional tex
           .toUpperCase();
       })
       .filter(line => line.length > 0)
-      .map(line => {
-        // Ensure headline is exactly 100 characters or less
-        if (line.length > 100) {
-          // Truncate at 97 characters and add "..."
-          return line.substring(0, 97) + '...';
-        }
-        return line;
-      })
       .slice(0, 3);
   }
 
@@ -464,5 +459,70 @@ Return ONLY the translated headlines, each on a new line, in the same order, WIT
       // В случае ошибки возвращаем исходные заголовки
       return headlines;
     }
+  }
+
+  // Validate headline lengths and fix if needed
+  async validateHeadlineLengths(headlines, language) {
+    const validatedHeadlines = [];
+    
+    for (const headline of headlines) {
+      if (headline.length <= 100) {
+        validatedHeadlines.push(headline);
+      } else {
+        console.log(`[${this.name}] Headline too long (${headline.length} chars), requesting shorter version`);
+        try {
+          const shortenedHeadline = await this.shortenHeadline(headline, language);
+          validatedHeadlines.push(shortenedHeadline);
+        } catch (error) {
+          console.warn(`[${this.name}] Failed to shorten headline, using truncated version:`, error.message);
+          // Fallback: smart truncation at word boundary
+          const truncated = this.smartTruncate(headline, 100);
+          validatedHeadlines.push(truncated);
+        }
+      }
+    }
+    
+    return validatedHeadlines;
+  }
+
+  // Request AI to shorten a headline while preserving meaning
+  async shortenHeadline(headline, language) {
+    const systemPrompt = language === 'ru' 
+      ? `Ты эксперт по созданию кратких рекламных заголовков. Сокращай заголовки, сохраняя смысл и эмоциональное воздействие.`
+      : `You are an expert at creating concise advertising headlines. Shorten headlines while preserving meaning and emotional impact.`;
+
+    const userPrompt = language === 'ru'
+      ? `Сократи этот заголовок до 100 символов максимум, сохранив смысл и силу воздействия:
+
+"${headline}"
+
+Верни ТОЛЬКО сокращенный заголовок, без объяснений.`
+      : `Shorten this headline to maximum 100 characters while preserving meaning and impact:
+
+"${headline}"
+
+Return ONLY the shortened headline, no explanations.`;
+
+    const response = await callOpenAI(systemPrompt, userPrompt);
+    const shortened = response.trim().replace(/^["«»]/, '').replace(/["«»]$/, '').toUpperCase();
+    
+    // Ensure it's actually shorter
+    return shortened.length <= 100 ? shortened : this.smartTruncate(shortened, 100);
+  }
+
+  // Smart truncation at word boundaries
+  smartTruncate(text, maxLength) {
+    if (text.length <= maxLength) return text;
+    
+    // Try to cut at word boundary
+    const truncated = text.substring(0, maxLength - 3);
+    const lastSpace = truncated.lastIndexOf(' ');
+    
+    if (lastSpace > maxLength * 0.8) { // If we can save at least 20% of length
+      return truncated.substring(0, lastSpace) + '...';
+    }
+    
+    // Otherwise just cut and add ellipsis
+    return text.substring(0, maxLength - 3) + '...';
   }
 }
