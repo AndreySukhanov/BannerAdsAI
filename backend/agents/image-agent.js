@@ -20,10 +20,11 @@ export class ImageAgent {
           const enhancedPrompt = this.enhancePrompt(prompt);
           const optimizedPrompt = optimizePromptForRecraft(enhancedPrompt, model);
           
-          // Limit prompt length to 1000 characters for Recraft.ai
-          const finalPrompt = optimizedPrompt.length > 1000 
-            ? optimizedPrompt.substring(0, 997) + '...'
-            : optimizedPrompt;
+          // Ensure prompt is exactly 1000 characters or less for Recraft.ai
+          let finalPrompt = optimizedPrompt;
+          if (finalPrompt.length > 1000) {
+            finalPrompt = optimizedPrompt.substring(0, 1000);
+          }
             
           // Retry логика для повышения надежности
           const imageResult = await this.retryImageGeneration(finalPrompt, model, {
@@ -185,10 +186,11 @@ Return ${count} detailed photographic descriptions, one per line, numbered 1-${c
           const enhancedPrompt = this.enhancePromptWithFeedback(prompt, userFeedback);
           const optimizedPrompt = optimizePromptForRecraft(enhancedPrompt, model);
           
-          // Limit prompt length to 1000 characters for Recraft.ai
-          const finalPrompt = optimizedPrompt.length > 1000 
-            ? optimizedPrompt.substring(0, 997) + '...'
-            : optimizedPrompt;
+          // Ensure prompt is exactly 1000 characters or less for Recraft.ai
+          let finalPrompt = optimizedPrompt;
+          if (finalPrompt.length > 1000) {
+            finalPrompt = optimizedPrompt.substring(0, 1000);
+          }
             
           const imageResult = await callRecraftImageGeneration(finalPrompt, model, {
             size: '1024x1024',
