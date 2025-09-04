@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, RefreshCw, Download, Check, Upload, X, Target, ArrowLeft } from "lucide-react";
+import { Loader2, RefreshCw, Download, Check, Upload, X, Target, ArrowLeft, ZoomIn, Maximize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateBannerFromHeadline, uploadFile as uploadFileMultiAgent, regenerateImages } from "@/api/multi-agent-client";
 import { saveDownloadedBanner } from "@/api/history-client";
@@ -150,6 +150,10 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [currentRatingBanner, setCurrentRatingBanner] = useState(null);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+  
+  // Состояние для зума баннеров
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomedBanner, setZoomedBanner] = useState(null);
 
   const createBannerWithText = async (imageUrl, headline, size, template, composition, isUploaded = false) => {
     return new Promise((resolve) => {
@@ -587,6 +591,52 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
     }
   };
 
+  // Функции для зума баннеров
+  const handleZoomBanner = (banner, index, event) => {
+    // Получаем позицию элемента, на который кликнули
+    const rect = event.currentTarget.getBoundingClientRect();
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+    
+    setZoomedBanner({
+      ...banner,
+      index: index,
+      title: `Вариант ${index + 1}`,
+      isUploaded: uploadedImage && index === 0,
+      // Сохраняем позицию оригинального баннера с учетом скролла
+      originalPosition: {
+        left: rect.left + scrollX,
+        top: rect.top + scrollY,
+        width: rect.width,
+        height: rect.height,
+        centerX: rect.left + rect.width / 2,
+        centerY: rect.top + rect.height / 2
+      }
+    });
+    setIsZoomed(true);
+  };
+
+  const handleCloseZoom = () => {
+    setIsZoomed(false);
+    setZoomedBanner(null);
+  };
+
+  // Обработка нажатия ESC для закрытия зума
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && isZoomed) {
+        handleCloseZoom();
+      }
+    };
+
+    if (isZoomed) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isZoomed]);
+
   return (
     <div className="w-full max-w-6xl mx-auto">
       {/* Шаг 5: Готовые баннеры */}
@@ -699,15 +749,27 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                       className="border-2 border-gray-200 hover:border-purple-300 transition-all rounded-xl"
                     >
                       <CardContent className="p-4 flex flex-col h-full">
-                        <img 
-                          src={banner.url} 
-                          alt={`Баннер ${index + 1}`}
-                          className="w-full object-contain bg-gray-100 rounded-lg mb-4"
-                          style={{ 
-                            aspectRatio: config.size === '300x250' ? '300/250' : '336/280',
-                            maxHeight: '200px'
-                          }}
-                        />
+                        <div className="relative group mb-4">
+                          <img 
+                            src={banner.url} 
+                            alt={`Баннер ${index + 1}`}
+                            className="w-full object-contain bg-gray-100 rounded-lg cursor-pointer transition-all group-hover:brightness-95"
+                            style={{ 
+                              aspectRatio: config.size === '300x250' ? '300/250' : '336/280',
+                              maxHeight: '200px'
+                            }}
+                            onClick={(e) => handleZoomBanner(banner, index, e)}
+                          />
+                          {/* Кнопка зума, появляется при наведении */}
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white shadow-lg"
+                            onClick={(e) => handleZoomBanner(banner, index, e)}
+                          >
+                            <Maximize2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                         
                         {/* Заголовок и бейдж в отдельном контейнере */}
                         <div className="mb-3 min-h-[24px] flex items-start gap-2 flex-wrap">
@@ -841,6 +903,63 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
         bannerData={currentRatingBanner}
         isSubmitting={isSubmittingRating}
       />
+
+      {/* Модальное окно для зума баннера */}
+      <AnimatePresence>
+        {isZoomed && zoomedBanner && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-transparent z-50"
+            onClick={handleCloseZoom}
+          >
+            {/* Кнопка закрытия */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCloseZoom}
+              className="absolute top-4 right-4 z-10 text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+            >
+              <X className="w-8 h-8" />
+            </Button>
+
+            {/* Увеличенное изображение баннера */}
+            <motion.div
+              initial={{ 
+                scale: 0.5,
+                opacity: 0
+              }}
+              animate={{ 
+                scale: 1, 
+                opacity: 1
+              }}
+              exit={{ 
+                scale: 0.5, 
+                opacity: 0
+              }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="relative max-w-[80vw] max-h-[80vh]"
+              style={{
+                position: 'fixed',
+                left: zoomedBanner.originalPosition ? 
+                  `${zoomedBanner.originalPosition.centerX - 230}px` : '50%',
+                top: zoomedBanner.originalPosition ? 
+                  `${zoomedBanner.originalPosition.centerY - 30}px` : '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 60
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img 
+                src={zoomedBanner.url} 
+                alt={zoomedBanner.title}
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
