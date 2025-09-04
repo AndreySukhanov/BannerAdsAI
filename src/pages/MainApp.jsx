@@ -46,13 +46,15 @@ export default function MainApp({ userId }) {
       template: generationData.template,
       font: generationData.font,
       imageModel: generationData.imageModel,
-      selected_headline: generationData.selectedHeadline,
+      selected_headline: generationData.selectedHeadline, // Convert from backend format
       uploadedImage: generationData.uploadedImage,
       // Additional restoration data
       _isRestored: true,
       _originalId: generationData.originalId,
       _originalTimestamp: generationData.originalTimestamp
     };
+    
+    console.log('[MainApp] Converted config for editing:', config);
     
     setSavedConfig(config);
     setCurrentView('create');

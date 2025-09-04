@@ -129,13 +129,20 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
   // Continue editing
   const handleContinueEditing = async (generationId) => {
     try {
+      console.log('[HistoryStep] Starting reproduction for generation:', generationId);
       const response = await reproduceGeneration(generationId, sessionId);
-      if (onSelectGeneration) {
+      console.log('[HistoryStep] Reproduction response:', response.data);
+      
+      if (onSelectGeneration && response.data) {
+        console.log('[HistoryStep] Calling onSelectGeneration with data:', response.data);
         onSelectGeneration(response.data);
+      } else {
+        console.error('[HistoryStep] onSelectGeneration is not available or no data received');
+        alert('Ошибка: функция редактирования недоступна');
       }
     } catch (error) {
-      console.error('Failed to reproduce generation:', error);
-      alert('Ошибка при загрузке настроек генерации');
+      console.error('[HistoryStep] Failed to reproduce generation:', error);
+      alert(`Ошибка при загрузке настроек генерации: ${error.message}`);
     }
   };
 
@@ -152,12 +159,13 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
 
   // Download all banners from generation
   const downloadAllBanners = (generation) => {
-    if (!generation.bannersData || generation.bannersData.length === 0) {
+    const banners = generation.bannersData || generation.banners || [];
+    if (banners.length === 0) {
       alert('Нет баннеров для скачивания');
       return;
     }
 
-    generation.bannersData.forEach((banner, index) => {
+    banners.forEach((banner, index) => {
       if (banner.imageUrl) {
         setTimeout(() => {
           downloadBanner(banner.imageUrl, generation.id, index);
@@ -441,29 +449,46 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
                           </div>
                         </div>
 
-                        {/* Preview Image */}
-                        {generation.previewImage && (
-                          <div className="mb-4">
+                        {/* Preview Image or Placeholder */}
+                        <div className="mb-4">
+                          {(generation.previewImage || (generation.banners && generation.banners[0]?.imageUrl)) ? (
                             <img
-                              src={generation.previewImage}
+                              src={generation.previewImage || generation.banners[0]?.imageUrl}
                               alt={`Превью баннера: ${generation.selectedHeadline.substring(0, 50)}...`}
-                              className="w-full h-20 object-cover rounded-lg border border-gray-200"
+                              className="w-full h-auto max-h-40 object-contain rounded-lg border border-gray-200 bg-gray-50"
                               onError={(e) => {
                                 e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
                               }}
                             />
+                          ) : null}
+                          
+                          {/* Fallback placeholder */}
+                          <div 
+                            className="w-full h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border border-gray-200 flex items-center justify-center"
+                            style={{ display: (generation.previewImage || (generation.banners && generation.banners[0]?.imageUrl)) ? 'none' : 'flex' }}
+                          >
+                            <div className="text-center text-gray-400">
+                              <ImageIcon className="w-8 h-8 mx-auto mb-2" />
+                              <div className="text-sm">
+                                {generation.template === 'blue_white' ? 'Синий' : 'Красный'} баннер
+                              </div>
+                              <div className="text-xs opacity-75">
+                                {generation.size}
+                              </div>
+                            </div>
                           </div>
-                        )}
+                        </div>
 
                         {/* Stats */}
                         <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
                           <div className="flex items-center gap-1">
                             <ImageIcon className="w-3 h-3" />
-                            {generation.bannersCount} баннеров
+                            {generation.bannersCount || (generation.banners && generation.banners.length) || 0} баннеров
                           </div>
                           <div className="flex items-center gap-1">
                             <Type className="w-3 h-3" />
-                            {generation.language}
+                            {generation.language || 'ru'}
                           </div>
                         </div>
 
@@ -478,7 +503,7 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
                             Редактировать
                           </Button>
                           
-                          {generation.bannersData && generation.bannersData.length > 0 && (
+                          {((generation.bannersData && generation.bannersData.length > 0) || (generation.banners && generation.banners.length > 0)) && (
                             <Button
                               size="sm"
                               variant="outline"
