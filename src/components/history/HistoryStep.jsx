@@ -451,9 +451,13 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
 
                         {/* Preview Image or Placeholder */}
                         <div className="mb-4">
-                          {(generation.previewImage || (generation.banners && generation.banners[0]?.imageUrl)) ? (
+                          {(generation.previewImage || 
+                            (generation.banners && generation.banners[0]?.imageUrl) || 
+                            (generation.bannersData && generation.bannersData[0]?.imageUrl)) ? (
                             <img
-                              src={generation.previewImage || generation.banners[0]?.imageUrl}
+                              src={generation.previewImage || 
+                                   generation.banners?.[0]?.imageUrl || 
+                                   generation.bannersData?.[0]?.imageUrl}
                               alt={`Превью баннера: ${generation.selectedHeadline.substring(0, 50)}...`}
                               className="w-full h-auto max-h-40 object-contain rounded-lg border border-gray-200 bg-gray-50"
                               onError={(e) => {
@@ -466,7 +470,9 @@ export default function HistoryStep({ sessionId, onSelectGeneration, onBack }) {
                           {/* Fallback placeholder */}
                           <div 
                             className="w-full h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border border-gray-200 flex items-center justify-center"
-                            style={{ display: (generation.previewImage || (generation.banners && generation.banners[0]?.imageUrl)) ? 'none' : 'flex' }}
+                            style={{ display: (generation.previewImage || 
+                              (generation.banners && generation.banners[0]?.imageUrl) ||
+                              (generation.bannersData && generation.bannersData[0]?.imageUrl)) ? 'none' : 'flex' }}
                           >
                             <div className="text-center text-gray-400">
                               <ImageIcon className="w-8 h-8 mx-auto mb-2" />

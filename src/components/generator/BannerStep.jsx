@@ -140,8 +140,27 @@ const backgroundStyles = [
 
 
 export default function BannerStep({ config, setConfig, sessionId, initialConfig, onBack }) {
+  console.log('[BannerStep] Component initialized with initialConfig:', initialConfig);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [banners, setBanners] = useState(config.banner_urls || []);
+  const [banners, setBanners] = useState(() => {
+    // Если есть оригинальные баннеры из редактирования, используем их
+    if (initialConfig && initialConfig.originalBanners && initialConfig.originalBanners.length > 0) {
+      console.log('[BannerStep] Loading original banners for editing:', initialConfig.originalBanners);
+      console.log('[BannerStep] InitialConfig:', initialConfig);
+      const originalBannersList = initialConfig.originalBanners.map(banner => {
+        console.log('[BannerStep] Processing banner:', banner);
+        return {
+          url: banner.imageUrl || banner.url,
+          isOriginal: true
+        };
+      });
+      console.log('[BannerStep] Mapped original banners:', originalBannersList);
+      return originalBannersList;
+    }
+    // Иначе используем обычные баннеры из конфига
+    console.log('[BannerStep] No original banners, using config.banner_urls:', config.banner_urls);
+    return config.banner_urls || [];
+  });
   const [uploadedImage, setUploadedImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isRegeneratingImages, setIsRegeneratingImages] = useState(false);
@@ -346,7 +365,16 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
   const generateBanners = useCallback(async () => {
     if (isGenerating) return;
     setIsGenerating(true);
-    setBanners([]); // Очищаем старые баннеры перед генерацией новых
+    
+    // В режиме редактирования сохраняем оригинальные баннеры
+    const originalBanners = banners.filter(b => b.isOriginal);
+    console.log('[BannerStep] Current banners:', banners);
+    console.log('[BannerStep] Original banners found:', originalBanners);
+    console.log('[BannerStep] Is restored mode:', initialConfig && initialConfig._isRestored);
+    
+    if (!(initialConfig && initialConfig._isRestored)) {
+      setBanners([]); // Очищаем только если не в режиме редактирования
+    }
     try {
       console.log('Generating banners using multi-agent system...');
       console.log('Config imageModel:', config.imageModel);
@@ -398,10 +426,19 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
         })
       )).filter(Boolean);
       
-      setBanners(generatedBanners);
+      // В режиме редактирования объединяем новые баннеры с оригинальными
+      const finalBanners = (initialConfig && initialConfig._isRestored) 
+        ? [...originalBanners, ...generatedBanners.slice(0, 2)] // Ограничиваем до 2 новых баннеров
+        : generatedBanners;
+      
+      console.log('[BannerStep] Final banners being set:', finalBanners);
+      console.log('[BannerStep] Original banners being combined:', originalBanners);
+      console.log('[BannerStep] Generated banners being combined:', generatedBanners);
+        
+      setBanners(finalBanners);
       setConfig({
         ...config,
-        banner_urls: generatedBanners,
+        banner_urls: finalBanners,
         taskId: result.taskId,
         images: result.images,
         status: 'completed'
@@ -777,6 +814,11 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                           {uploadedImage && index === 0 && (
                             <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 whitespace-nowrap">
                               Ваше изображение
+                            </Badge>
+                          )}
+                          {banner.isOriginal && (
+                            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 whitespace-nowrap">
+                              Оригинал
                             </Badge>
                           )}
                         </div>

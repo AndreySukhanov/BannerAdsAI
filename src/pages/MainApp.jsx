@@ -38,6 +38,7 @@ export default function MainApp({ userId }) {
   // Handle selecting generation from history for editing
   const handleSelectGeneration = (generationData) => {
     console.log('[MainApp] Loading generation for editing:', generationData);
+    console.log('[MainApp] Generation original banners:', generationData.originalBanners);
     
     // Convert history data to generator config format
     const config = {
@@ -48,6 +49,8 @@ export default function MainApp({ userId }) {
       imageModel: generationData.imageModel,
       selected_headline: generationData.selectedHeadline, // Convert from backend format
       uploadedImage: generationData.uploadedImage,
+      // Оригинальные баннеры для отображения первыми на этапе 5
+      originalBanners: generationData.originalBanners || [],
       // Additional restoration data
       _isRestored: true,
       _originalId: generationData.originalId,

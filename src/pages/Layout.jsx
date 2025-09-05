@@ -4,11 +4,8 @@ import { Zap, User } from "lucide-react";
 
 export default function Layout({ children, showNavigation = false, onNavigate }) {
   const handleLogoClick = () => {
-    if (onNavigate) {
-      onNavigate('create');
-    } else {
-      window.location.reload();
-    }
+    // Всегда перезагружаем страницу при клике на логотип
+    window.location.reload();
   };
 
   return (

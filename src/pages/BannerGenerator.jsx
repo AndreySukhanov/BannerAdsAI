@@ -12,6 +12,7 @@ import BannerStep from "../components/generator/BannerStep";
 
 export default function BannerGenerator({ sessionId, initialConfig, onConfigChange }) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [savedInitialConfig, setSavedInitialConfig] = useState(initialConfig);
   const [config, setConfig] = useState({
     url: '',
     size: '300x250',
@@ -86,7 +87,7 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
             config={config} 
             setConfig={setConfig}
             sessionId={sessionId}
-            initialConfig={initialConfig}
+            initialConfig={savedInitialConfig}
             onBack={() => setCurrentStep(4)}
           />
         )}

@@ -283,7 +283,7 @@ export async function reproduceGeneration(req, res) {
       });
     }
     
-    // Возвращаем только input данные для воспроизведения
+    // Возвращаем input данные и оригинальные баннеры для воспроизведения
     const reproductionData = {
       url: generation.input.url,
       size: generation.input.size,
@@ -292,6 +292,8 @@ export async function reproduceGeneration(req, res) {
       imageModel: generation.input.imageModel,
       uploadedImage: generation.input.uploadedImage,
       selectedHeadline: generation.output.selectedHeadline,
+      // Оригинальные баннеры для отображения на этапе 5
+      originalBanners: generation.output.banners || generation.output.bannersData || [],
       // Дополнительные данные для контекста
       originalId: generation.id,
       originalTimestamp: generation.timestamp

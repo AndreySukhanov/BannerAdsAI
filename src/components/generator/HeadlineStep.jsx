@@ -13,7 +13,13 @@ import BannerPreview from "@/components/ui/BannerPreview";
 
 export default function HeadlineStep({ config, setConfig, sessionId, onNext, onBack }) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [headlines, setHeadlines] = useState(config.generated_headlines || []);
+  const [headlines, setHeadlines] = useState(() => {
+    // Если это восстановленная конфигурация (редактирование), начинаем с сохранённого заголовка
+    if (config._isRestored && config.selected_headline) {
+      return [config.selected_headline];
+    }
+    return config.generated_headlines || [];
+  });
   const [selectedHeadline, setSelectedHeadline] = useState(config.selected_headline || '');
   const [editingIndex, setEditingIndex] = useState(null);
   const [editedHeadline, setEditedHeadline] = useState('');
@@ -41,10 +47,15 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
         russianTranslation: h.russianTranslation
       }));
       
-      setHeadlines(processedHeadlines);
+      // Если это режим редактирования, объединяем с существующими заголовками
+      const finalHeadlines = (config._isRestored && headlines.length > 0) 
+        ? [...headlines, ...processedHeadlines.slice(0, 2)] // Ограничиваем до 2 новых заголовков
+        : processedHeadlines;
+        
+      setHeadlines(finalHeadlines);
       setConfig({
         ...config,
-        generated_headlines: processedHeadlines,
+        generated_headlines: finalHeadlines,
         webContent: result.webContent,
         taskId: result.taskId,
         status: 'selecting_headline'
@@ -65,10 +76,14 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
   }, [config, setConfig]);
 
   useEffect(() => {
-    if (!headlines.length && !isGenerating) {
+    // Генерируем заголовки если их нет совсем, или если это режим редактирования и у нас только 1 заголовок
+    const needsGeneration = (!headlines.length) || 
+      (config._isRestored && headlines.length === 1 && !isGenerating);
+    
+    if (needsGeneration && !isGenerating) {
       generateHeadlines();
     }
-  }, [headlines.length, isGenerating, generateHeadlines]);
+  }, [headlines.length, isGenerating, generateHeadlines, config._isRestored]);
 
   const selectHeadline = (headline) => {
     const headlineText = typeof headline === 'string' ? headline : headline.text;
