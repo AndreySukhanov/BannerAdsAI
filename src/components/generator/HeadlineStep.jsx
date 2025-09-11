@@ -652,7 +652,7 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
               className="flex-1 h-12"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-              Создать новые варианты
+              Сгенерировать новые заголовки
             </Button>
             
             <Button
