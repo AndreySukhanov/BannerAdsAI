@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 import HeadlineStep from "../components/generator/HeadlineStep";
 import BannerStep from "../components/generator/BannerStep";
+import BrandStyleStep from "../components/generator/BrandStyleStep";
 
 export default function BannerGenerator({ sessionId, initialConfig, onConfigChange }) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -37,7 +38,7 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
       
       // If we have a selected headline, skip to headline step
       if (initialConfig.selected_headline) {
-        setCurrentStep(4);
+        setCurrentStep(5);
       } else if (initialConfig.url) {
         setCurrentStep(2); // Skip to size selection
       }
@@ -56,6 +57,8 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
       setCurrentStep(3);
     } else if (currentStep === 3 && config.template) {
       setCurrentStep(4);
+    } else if (currentStep === 4) {
+      setCurrentStep(5);
     }
   };
 
@@ -65,7 +68,14 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
   };
 
   const handleTemplateSelect = (template) => {
-    setConfig({ ...config, template });
+    const newConfig = { ...config, template };
+    
+    // Устанавливаем brandUrl по умолчанию для брендированного шаблона
+    if (template === 'branded' && !config.brandUrl) {
+      newConfig.brandUrl = 'https://www.bild.de';
+    }
+    
+    setConfig(newConfig);
     // Не переходим автоматически к следующему этапу
     // setCurrentStep(4);
   };
@@ -74,21 +84,30 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
     return (
       <div className="max-w-4xl mx-auto px-6">
         {currentStep === 4 && (
-          <HeadlineStep 
+          <BrandStyleStep 
             config={config} 
             setConfig={setConfig}
-            sessionId={sessionId}
             onNext={() => setCurrentStep(5)}
             onBack={() => setCurrentStep(3)}
           />
         )}
         {currentStep === 5 && (
+          <HeadlineStep
+            config={config}
+            setConfig={setConfig}
+            sessionId={sessionId}
+            onNext={() => setCurrentStep(6)}
+            onBack={() => setCurrentStep(4)}
+          />
+        )}
+        {currentStep === 6 && (
           <BannerStep 
             config={config} 
             setConfig={setConfig}
             sessionId={sessionId}
             initialConfig={savedInitialConfig}
-            onBack={() => setCurrentStep(4)}
+            onBack={() => setCurrentStep(5)}
+            isBrandedTemplate={config.template === 'branded'}
           />
         )}
       </div>
@@ -246,7 +265,7 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
                 <span className="font-semibold text-gray-900">Цветовая схема</span>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <button
                   onClick={() => handleTemplateSelect('blue_white')}
                   className={`p-6 rounded-xl border-2 text-center transition-all ${
@@ -276,14 +295,48 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
                   <div className="font-semibold text-gray-900">Красный фон + белый текст</div>
                   <div className="text-sm text-gray-500">Энергичный стиль</div>
                 </button>
+
+                <button
+                  onClick={() => handleTemplateSelect('branded')}
+                  className={`p-6 rounded-xl border-2 text-center transition-all ${
+                    config.template === 'branded'
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg mb-4 flex items-center justify-center">
+                    <span className="text-white font-semibold text-sm">🎨 Бренд</span>
+                  </div>
+                  <div className="font-semibold text-gray-900">Брендированный стиль</div>
+                  <div className="text-sm text-gray-500">Фирменные цвета</div>
+                </button>
               </div>
+
+              {/* URL input for branded template */}
+              {config.template === 'branded' && (
+                <div className="mb-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Globe className="w-4 h-4 text-red-600" />
+                    <span className="font-medium text-red-800">Шаблон Bild.de</span>
+                  </div>
+                  <Input
+                    placeholder="https://www.bild.de"
+                    value={config.brandUrl || 'https://www.bild.de'}
+                    onChange={(e) => setConfig(prev => ({ ...prev, brandUrl: e.target.value }))}
+                    className="bg-white border-red-300 focus:border-red-500"
+                  />
+                  <p className="text-sm text-red-600 mt-2">
+                    Баннеры будут созданы в стиле немецкого таблоида Bild с красными подложками и жирным шрифтом
+                  </p>
+                </div>
+              )}
 
               <Button
                 onClick={handleContinue}
-                disabled={!config.template}
+                disabled={!config.template || (config.template === 'branded' && !config.brandUrl?.trim())}
                 className="w-full h-12 gradient-button rounded-xl text-base font-semibold"
               >
-                Сгенерировать заголовки
+                {config.template === 'branded' ? 'Применить стиль Bild.de' : 'Сгенерировать заголовки'}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </CardContent>
@@ -317,8 +370,8 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
           <div className="step-header">
             <div className="step-number">4</div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Выберите заголовок и изображение</h2>
-              <p className="text-gray-600">Определите самый привлекательный вариант для вашего баннера</p>
+              <h2 className="text-xl font-bold text-gray-900">Настройка фирменного стиля</h2>
+              <p className="text-gray-600">Анализ сайта для создания брендированных баннеров</p>
             </div>
           </div>
         )}
@@ -326,6 +379,16 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
         {currentStep < 5 && (
           <div className="step-header">
             <div className="step-number">5</div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Выберите заголовок и изображение</h2>
+              <p className="text-gray-600">Определите самый привлекательный вариант для вашего баннера</p>
+            </div>
+          </div>
+        )}
+
+        {currentStep < 6 && (
+          <div className="step-header">
+            <div className="step-number">6</div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Готовые баннеры</h2>
               <p className="text-gray-600">Ваши персонализированные рекламные креативы готовы</p>
