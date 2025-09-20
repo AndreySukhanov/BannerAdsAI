@@ -49,8 +49,8 @@ export async function generateHeadlines(req, res) {
     console.log('Raw request body:', req.body);
     console.log('Request headers:', req.headers);
     
-    const { url, template } = req.body;
-    console.log('Parsed request:', { url, template });
+    const { url, template, brandingData, useBrandStyle } = req.body;
+    console.log('Parsed request:', { url, template, useBrandStyle, hasBrandingData: !!brandingData });
     
     if (!url || !template) {
       return res.status(400).json({
@@ -61,7 +61,9 @@ export async function generateHeadlines(req, res) {
     
     const result = await coordinator.generateHeadlines({
       url,
-      template
+      template,
+      brandingData,
+      useBrandStyle
     });
     
     res.json({
@@ -83,7 +85,7 @@ export async function generateHeadlines(req, res) {
 // Generate banner from selected headline
 export async function generateBannerFromHeadline(req, res) {
   try {
-    const { selectedHeadline, size, template, font, uploadedImage, webContent, url, imageModel } = req.body;
+    const { selectedHeadline, size, template, font, uploadedImage, webContent, url, imageModel, brandingData, useBrandStyle } = req.body;
     
     // Получаем sessionId из заголовков или генерируем новый
     const sessionId = req.headers['x-session-id'] || req.body.sessionId || `session_${Date.now()}`;
@@ -99,10 +101,11 @@ export async function generateBannerFromHeadline(req, res) {
       hasWebContent: !!webContent
     });
     
-    if (!selectedHeadline || !size || !template) {
+    if (!selectedHeadline || selectedHeadline.trim() === '' || !size || !template) {
       return res.status(400).json({
         error: 'Missing required parameters',
-        required: ['selectedHeadline', 'size', 'template']
+        required: ['selectedHeadline', 'size', 'template'],
+        details: 'selectedHeadline cannot be empty'
       });
     }
     
@@ -115,7 +118,9 @@ export async function generateBannerFromHeadline(req, res) {
       webContent,
       url,
       imageModel,
-      sessionId
+      sessionId,
+      brandingData,
+      useBrandStyle
     });
     
     res.json({

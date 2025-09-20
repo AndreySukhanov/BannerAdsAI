@@ -58,7 +58,9 @@ export class CoordinatorAgent {
         content: webContent,
         headlines: translatedHeadlines,
         count: request.uploadedImage ? 2 : 3,
-        model: request.imageModel || 'recraftv3'
+        model: request.imageModel || 'recraftv3',
+        brandingData: request.brandingData,
+        useBrandStyle: request.useBrandStyle
       });
 
       // Phase 4: Create final banners by combining images and headlines
@@ -154,7 +156,9 @@ export class CoordinatorAgent {
         content: webContent,
         headlines: [request.selectedHeadline],
         count: request.uploadedImage ? 2 : 3,
-        model: request.imageModel || 'recraftv3'
+        model: request.imageModel || 'recraftv3',
+        brandingData: request.brandingData,
+        useBrandStyle: request.useBrandStyle
       });
 
       const banners = await this.agents.banner.createBanners({
@@ -229,7 +233,9 @@ export class CoordinatorAgent {
         headlines: request.headlines,
         userFeedback: request.userFeedback,
         model: request.imageModel,
-        count: request.count
+        count: request.count,
+        brandingData: request.brandingData,
+        useBrandStyle: request.useBrandStyle
       });
       
       const result = { taskId, images };

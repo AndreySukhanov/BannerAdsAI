@@ -14,10 +14,10 @@ export class HeadlineAgent {
     
     try {
       const response = await callOpenAI(systemPrompt, userPrompt);
-      const headlines = this.parseHeadlines(response);
+      const headlines = this.parseHeadlines(response, style);
       
       // Check and fix headlines that are too long
-      const validatedHeadlines = await this.validateHeadlineLengths(headlines, language);
+      const validatedHeadlines = await this.validateHeadlineLengths(headlines, language, style);
       
       console.log(`[${this.name}] Generated ${validatedHeadlines.length} headlines`);
       
@@ -187,20 +187,22 @@ Return ONLY 3 headlines, each on a new line, WITHOUT numbering or additional tex
     }
   }
 
-  parseHeadlines(response) {
+  parseHeadlines(response, style = null) {
     return response
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0)
       .map(line => {
         // Remove numbering, quotes, and other formatting
-        return line
+        const cleanLine = line
           .replace(/^\d+[.)]\s*/, '')
           .replace(/^[-•]\s*/, '')
           .replace(/^["«»]/, '')
           .replace(/["«»]$/, '')
-          .trim()
-          .toUpperCase();
+          .trim();
+        
+        // Применяем uppercase только для шаблонов, которые этого требуют
+        return style === 'branded' ? cleanLine : cleanLine.toUpperCase();
       })
       .filter(line => line.length > 0)
       .slice(0, 3);
@@ -289,7 +291,7 @@ Return ONLY 3 headlines, each on a new line, WITHOUT numbering or additional tex
       const userPrompt = this.buildRegenerationPrompt(webContent, templateStyle, currentHeadlines, userFeedback, language);
       
       const response = await callOpenAI(systemPrompt, userPrompt);
-      const headlines = this.parseHeadlines(response);
+      const headlines = this.parseHeadlines(response, template);
       
       if (headlines.length === 0) {
         throw new Error('No valid headlines generated after feedback application');
@@ -462,7 +464,7 @@ Return ONLY the translated headlines, each on a new line, in the same order, WIT
   }
 
   // Validate headline lengths and fix if needed
-  async validateHeadlineLengths(headlines, language) {
+  async validateHeadlineLengths(headlines, language, style = null) {
     const validatedHeadlines = [];
     
     for (const headline of headlines) {
@@ -471,7 +473,7 @@ Return ONLY the translated headlines, each on a new line, in the same order, WIT
       } else {
         console.log(`[${this.name}] Headline too long (${headline.length} chars), requesting shorter version`);
         try {
-          const shortenedHeadline = await this.shortenHeadline(headline, language);
+          const shortenedHeadline = await this.shortenHeadline(headline, language, style);
           validatedHeadlines.push(shortenedHeadline);
         } catch (error) {
           console.warn(`[${this.name}] Failed to shorten headline, using truncated version:`, error.message);
@@ -486,7 +488,7 @@ Return ONLY the translated headlines, each on a new line, in the same order, WIT
   }
 
   // Request AI to shorten a headline while preserving meaning
-  async shortenHeadline(headline, language) {
+  async shortenHeadline(headline, language, style = null) {
     const systemPrompt = language === 'ru' 
       ? `Ты эксперт по созданию кратких рекламных заголовков. Сокращай заголовки, сохраняя смысл и эмоциональное воздействие.`
       : `You are an expert at creating concise advertising headlines. Shorten headlines while preserving meaning and emotional impact.`;
@@ -504,7 +506,10 @@ Return ONLY the translated headlines, each on a new line, in the same order, WIT
 Return ONLY the shortened headline, no explanations.`;
 
     const response = await callOpenAI(systemPrompt, userPrompt);
-    const shortened = response.trim().replace(/^["«»]/, '').replace(/["«»]$/, '').toUpperCase();
+    const cleanShortened = response.trim().replace(/^["«»]/, '').replace(/["«»]$/, '');
+    
+    // Применяем uppercase только для шаблонов, которые этого требуют
+    const shortened = style === 'branded' ? cleanShortened : cleanShortened.toUpperCase();
     
     // Ensure it's actually shorter
     return shortened.length <= 100 ? shortened : this.smartTruncate(shortened, 100);

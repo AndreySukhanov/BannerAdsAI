@@ -45,6 +45,9 @@ import {
   updateRating
 } from './routes/ratings.js';
 
+// Import brand parser routes  
+import brandParserRouter from './routes/brand-parser.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -139,6 +142,9 @@ app.get('/api/ratings/:ratingId', getRating);
 app.put('/api/ratings/:ratingId', updateRating);
 app.get('/api/ratings/insights/ai', getAIInsights);
 app.get('/api/ratings/stats/system', getSystemRatingStats);
+
+// Brand Parser API Routes
+app.use('/api/brand-parser', brandParserRouter);
 
 // Error handling middleware (must have 4 args)
 app.use((err, req, res, next) => {

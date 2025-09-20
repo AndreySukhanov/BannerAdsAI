@@ -7,12 +7,13 @@ export class ImageAgent {
     this.name = 'ImageAgent';
   }
 
-  async generateImages({ content, headlines, count = 3, model = 'recraftv3' }) {
+  async generateImages({ content, headlines, count = 3, model = 'recraftv3', brandingData = null, useBrandStyle = false }) {
     console.log(`[${this.name}] Generating ${count} images for content: ${content.title} using model: ${model}`);
+    console.log(`[${this.name}] Brand styling: ${useBrandStyle ? 'ENABLED' : 'DISABLED'}`);
     
     try {
       // Step 1: Generate image prompts based on content and headlines
-      const imagePrompts = await this.generateImagePrompts(content, headlines, count);
+      const imagePrompts = await this.generateImagePrompts(content, headlines, count, brandingData, useBrandStyle);
       
       // Step 2: Generate actual images from prompts
       const imagePromises = imagePrompts.map(async (prompt, index) => {
@@ -72,8 +73,11 @@ export class ImageAgent {
     }
   }
 
-  async generateImagePrompts(content, headlines, count) {
+  async generateImagePrompts(content, headlines, count, brandingData = null, useBrandStyle = false) {
     console.log(`[${this.name}] Generating ${count} image prompts`);
+    if (useBrandStyle && brandingData) {
+      console.log(`[${this.name}] Using brand styling for: ${brandingData.title} (${brandingData.industry})`);
+    }
     
     const systemPrompt = `You are a photo editor for a prestigious science and nature magazine (like National Geographic or Nature).
     Your task is to commission genuine, technically accurate, and compelling photographs.
@@ -82,12 +86,45 @@ export class ImageAgent {
 
     const headlinesText = headlines.map(h => h.text || h).join('\n');
     
+    // Build brand styling instructions if enabled
+    let brandStylingPrompt = '';
+    if (useBrandStyle && brandingData) {
+      const primaryColors = brandingData.colors && brandingData.colors.length > 0 
+        ? brandingData.colors.slice(0, 2) 
+        : [];
+      const secondaryColors = brandingData.colors && brandingData.colors.length > 2 
+        ? brandingData.colors.slice(2, 4)
+        : [];
+      
+      const colorRequirements = primaryColors.length > 0 
+        ? `DOMINANT COLORS: Must prominently feature ${primaryColors.join(' and ')} as the main color scheme. ${secondaryColors.length > 0 ? `Secondary colors: ${secondaryColors.join(', ')}. ` : ''}` 
+        : '';
+      
+      const industryContext = brandingData.industry !== 'Other' 
+        ? `${brandingData.industry} industry aesthetic. ` 
+        : '';
+      
+      brandStylingPrompt = `
+
+⚠️ CRITICAL BRANDING REQUIREMENTS - MUST BE HIGHLY VISIBLE:
+✓ BRAND: ${brandingData.title}
+✓ ${colorRequirements}
+✓ INDUSTRY: ${industryContext}Create visuals that immediately reflect the brand identity
+✓ STYLE: Incorporate visual elements typical of ${brandingData.title} brand aesthetics
+✓ COMPOSITION: Use branded color scheme as background, lighting, or dominant visual elements
+✓ MOOD: Match the professional tone and visual style of ${brandingData.industry || 'business'} industry
+✓ IMPACT: Brand colors should be IMMEDIATELY noticeable and central to the image composition
+
+IMPORTANT: This is a BRANDED banner - the brand identity must be unmistakably present in the visual design!
+`;
+    }
+    
     const userPrompt = `Analyze this content and create ${count} authentic photographic concepts. The images must be strictly photorealistic and suitable for a science magazine cover.
 
 CONTENT TO ANALYZE:
 Title: ${content.title}
 Description: ${content.description}
-Banner Headlines: ${headlinesText}
+Banner Headlines: ${headlinesText}${brandStylingPrompt}
 
 TASK: Create ${count} different concepts for real photographs.
 
@@ -173,12 +210,13 @@ Return ${count} detailed photographic descriptions, one per line, numbered 1-${c
   }
 
   // Regenerate images with user feedback
-  async regenerateImages({ content, headlines, userFeedback, model = 'recraftv3', count = 3 }) {
+  async regenerateImages({ content, headlines, userFeedback, model = 'recraftv3', count = 3, brandingData = null, useBrandStyle = false }) {
     console.log(`[${this.name}] Regenerating ${count} images with user feedback: "${userFeedback}"`);
+    console.log(`[${this.name}] Brand styling: ${useBrandStyle ? 'ENABLED' : 'DISABLED'}`);
     
     try {
       // Step 1: Generate new image prompts based on feedback
-      const imagePrompts = await this.generateImagePromptsWithFeedback(content, headlines, userFeedback, count);
+      const imagePrompts = await this.generateImagePromptsWithFeedback(content, headlines, userFeedback, count, brandingData, useBrandStyle);
       
       // Step 2: Generate actual images from enhanced prompts
       const imagePromises = imagePrompts.map(async (prompt, index) => {
@@ -238,7 +276,7 @@ Return ${count} detailed photographic descriptions, one per line, numbered 1-${c
     }
   }
 
-  async generateImagePromptsWithFeedback(content, headlines, userFeedback, count) {
+  async generateImagePromptsWithFeedback(content, headlines, userFeedback, count, brandingData = null, useBrandStyle = false) {
     console.log(`[${this.name}] Generating ${count} image prompts with user feedback`);
     
     const systemPrompt = `You are a photo editor for a prestigious science and nature magazine.
@@ -247,12 +285,45 @@ Return ${count} detailed photographic descriptions, one per line, numbered 1-${c
 
     const headlinesText = headlines.map(h => h.text || h).join('\n');
     
+    // Build brand styling instructions if enabled
+    let brandStylingPrompt = '';
+    if (useBrandStyle && brandingData) {
+      const primaryColors = brandingData.colors && brandingData.colors.length > 0 
+        ? brandingData.colors.slice(0, 2) 
+        : [];
+      const secondaryColors = brandingData.colors && brandingData.colors.length > 2 
+        ? brandingData.colors.slice(2, 4)
+        : [];
+      
+      const colorRequirements = primaryColors.length > 0 
+        ? `DOMINANT COLORS: Must prominently feature ${primaryColors.join(' and ')} as the main color scheme. ${secondaryColors.length > 0 ? `Secondary colors: ${secondaryColors.join(', ')}. ` : ''}` 
+        : '';
+      
+      const industryContext = brandingData.industry !== 'Other' 
+        ? `${brandingData.industry} industry aesthetic. ` 
+        : '';
+      
+      brandStylingPrompt = `
+
+⚠️ CRITICAL BRANDING REQUIREMENTS - MUST BE HIGHLY VISIBLE:
+✓ BRAND: ${brandingData.title}
+✓ ${colorRequirements}
+✓ INDUSTRY: ${industryContext}Create visuals that immediately reflect the brand identity
+✓ STYLE: Incorporate visual elements typical of ${brandingData.title} brand aesthetics
+✓ COMPOSITION: Use branded color scheme as background, lighting, or dominant visual elements
+✓ MOOD: Match the professional tone and visual style of ${brandingData.industry || 'business'} industry
+✓ IMPACT: Brand colors should be IMMEDIATELY noticeable and central to the image composition
+
+IMPORTANT: This is a BRANDED banner - the brand identity must be unmistakably present in the visual design!
+`;
+    }
+    
     const userPrompt = `Analyze this content and create ${count} authentic photographic concepts based on user feedback.
 
 CONTENT TO ANALYZE:
 Title: ${content.title}
 Description: ${content.description}
-Banner Headlines: ${headlinesText}
+Banner Headlines: ${headlinesText}${brandStylingPrompt}
 
 USER FEEDBACK: "${userFeedback}"
 
