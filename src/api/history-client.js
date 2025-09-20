@@ -1,7 +1,7 @@
 // History API Client
 import { getCurrentUserId } from '@/utils/user-id';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3006';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3014';
 
 class HistoryAPIError extends Error {
   constructor(message, status, response) {

@@ -1,5 +1,5 @@
 // Multi-Agent API Client for Banner Generation
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3006';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3014';
 
 class MultiAgentAPIError extends Error {
   constructor(message, status, response) {
@@ -62,14 +62,22 @@ async function apiRequest(endpoint, options = {}) {
 // Generate headlines using multi-agent system
 export async function generateHeadlines(config) {
   try {
-    console.log('[MultiAgent] Generating headlines:', { url: config.url, template: config.template, sessionId: config.sessionId });
+    console.log('[MultiAgent] Generating headlines:', { 
+      url: config.url, 
+      template: config.template, 
+      sessionId: config.sessionId,
+      useBrandStyle: config.useBrandStyle,
+      hasBrandingData: !!config.brandingData
+    });
     
     const response = await apiRequest('/api/agents/generate-headlines', {
       method: 'POST',
       body: JSON.stringify({
         url: config.url,
         template: config.template,
-        sessionId: config.sessionId
+        sessionId: config.sessionId,
+        brandingData: config.brandingData,
+        useBrandStyle: config.useBrandStyle
       })
     });
     
@@ -155,7 +163,9 @@ export async function generateBannerFromHeadline(config) {
         webContent: config.webContent,
         url: config.url,
         imageModel: config.imageModel,
-        sessionId: config.sessionId
+        sessionId: config.sessionId,
+        brandingData: config.brandingData,
+        useBrandStyle: config.useBrandStyle
       })
     });
     
