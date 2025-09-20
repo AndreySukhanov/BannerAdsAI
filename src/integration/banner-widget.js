@@ -18,7 +18,7 @@ export function initBannerWidget(userId, container, options = {}) {
 
   // Настройки по умолчанию
   const config = {
-    apiBaseUrl: options.apiBaseUrl || 'http://localhost:3006',
+    apiBaseUrl: options.apiBaseUrl || 'http://localhost:3014',
     theme: options.theme || 'default',
     language: options.language || 'auto',
     ...options
