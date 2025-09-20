@@ -139,7 +139,7 @@ const backgroundStyles = [
 ];
 
 
-export default function BannerStep({ config, setConfig, sessionId, initialConfig, onBack }) {
+export default function BannerStep({ config, setConfig, sessionId, initialConfig, onBack, isBrandedTemplate = false }) {
   console.log('[BannerStep] Component initialized with initialConfig:', initialConfig);
   const [isGenerating, setIsGenerating] = useState(false);
   const [banners, setBanners] = useState(() => {
@@ -173,6 +173,417 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
   // Состояние для зума баннеров
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomedBanner, setZoomedBanner] = useState(null);
+
+  // Функция для создания брендированных баннеров без плашки
+  const createBrandedBanner = async (imageUrl, headline, size, brandingData, bannerIndex = 0) => {
+    // Fallback branding data для шаблона Bild.de если brandingData отсутствует
+    const defaultBrandingData = {
+      title: "Bild.de",
+      industry: "Медиа",
+      colors: ["#dc2626", "#ffffff", "#000000"], // Красный, белый, черный
+      fonts: ["Arial", "Helvetica"],
+      designElements: {
+        textStyles: {
+          fontWeight: "bold",
+          textTransform: "none"
+        }
+      }
+    };
+
+    const finalBrandingData = brandingData || defaultBrandingData;
+    console.log('[createBrandedBanner] Using branding data:', finalBrandingData);
+    console.log('[createBrandedBanner] Headline:', headline);
+    console.log('[createBrandedBanner] Size:', size);
+
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      const [width, height] = size.split('x').map(Number);
+      canvas.width = width;
+      canvas.height = height;
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        // Отрисовываем изображение на весь canvas
+        const imgAspectRatio = img.width / img.height;
+        const canvasAspectRatio = width / height;
+        let drawWidth, drawHeight, drawX, drawY;
+        
+        if (imgAspectRatio > canvasAspectRatio) {
+          drawHeight = height;
+          drawWidth = drawHeight * imgAspectRatio;
+          drawX = (width - drawWidth) / 2;
+          drawY = 0;
+        } else {
+          drawWidth = width;
+          drawHeight = drawWidth / imgAspectRatio;
+          drawX = 0;
+          drawY = (height - drawHeight) / 2;
+        }
+        
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+
+        // Настройки текста в фирменном стиле - БЕЗ ПЛАШКИ
+        let primaryColor = finalBrandingData?.colors?.[0] || '#ffffff';
+        const secondaryColor = finalBrandingData?.colors?.[1] || primaryColor;
+        const brandFont = finalBrandingData?.fonts?.[0] || 'Arial';
+        const designElements = finalBrandingData?.designElements || {};
+        
+        // Проверяем, что цвет в правильном формате
+        if (primaryColor && !primaryColor.startsWith('#')) {
+          primaryColor = '#' + primaryColor;
+        }
+        
+        // Если цвет слишком светлый для читаемости, используем темный
+        if (primaryColor === '#ffffff' || primaryColor === '#fff') {
+          primaryColor = '#333333';
+        }
+        
+        // Выбор варианта: используем selectedVariant если задан, иначе детерминированный выбор
+        const variant = config.selectedVariant || ((bannerIndex % 3) + 1);
+
+        console.log(`Применяем Bild.de шаблон: Вариант ${variant} ${
+          variant === 1 ? '(полная подложка)' :
+          variant === 2 ? '(структурированный)' :
+          '(текст на изображении)'
+        }`);
+
+        // Функция анализа яркости области изображения
+        const analyzeImageBrightness = (x, y, width, height) => {
+          const imageData = ctx.getImageData(x, y, width, height);
+          const data = imageData.data;
+          let totalBrightness = 0;
+          let pixelCount = 0;
+          
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+            totalBrightness += brightness;
+            pixelCount++;
+          }
+          
+          return totalBrightness / pixelCount; // 0-255
+        };
+        
+        // Два варианта шаблонов Bild.de
+        const bildTemplates = {
+          // Вариант 1: Полная красная подложка (текущий)
+          variant1: {
+            backgroundColor: 'rgba(220, 20, 20, 0.95)',
+            textColor: '#ffffff',
+            font: 'Arial, "Helvetica Neue", Helvetica, sans-serif',
+            fontWeight: 'bold',
+            textTransform: 'none',
+            borderRadius: '0px',
+            padding: 12
+          },
+          // Вариант 2: Структурированный (как в референсе) - белая плашка
+          variant2: {
+            backgroundColor: 'rgba(255, 255, 255, 0.95)', // Белая фиксированная плашка
+            kickerBg: 'rgba(220, 20, 20, 0.95)', // Красная подложка только для киккера
+            kickerTextColor: '#ffffff',
+            mainTextColor: '#000000', // Черный текст для заголовка
+            subTextColor: '#333333',  // Серый для подзаголовка
+            font: 'Arial, "Helvetica Neue", Helvetica, sans-serif',
+            fontWeight: 'bold',
+            textTransform: 'none',
+            padding: 16,
+            borderRadius: '4px'
+          }
+        };
+        
+        const bildTemplate = variant === 2 ? bildTemplates.variant2 : bildTemplates.variant1;
+        
+        // Настройки фирменного шрифта
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        
+        // Применяем стили дизайна из сайта
+        const fontWeight = designElements.textStyles?.fontWeight || 'bold';
+        const textTransform = designElements.textStyles?.textTransform || 'none';
+        const letterSpacing = designElements.textStyles?.letterSpacing || 'normal';
+        
+        // Подбираем размер шрифта для баннера
+        let fontSize = Math.min(width * 0.08, 32);
+        const maxWidth = width * 0.8; // Уменьшаем максимальную ширину для гарантии
+        const padding = width * 0.05;
+        let lines;
+
+        // Применяем настройки Bild.de шаблона
+        const fontFamily = bildTemplate.font;
+        const templateFontWeight = bildTemplate.fontWeight;
+
+        // Применяем трансформацию текста - приоритет у branded шаблона
+        let processedHeadline = headline;
+
+        // Для branded шаблона всегда сохраняем оригинальный регистр
+        if (config.template === 'branded') {
+          processedHeadline = headline;
+        } else if (bildTemplate.textTransform === 'uppercase') {
+          processedHeadline = headline.toUpperCase();
+        } else if (bildTemplate.textTransform === 'none') {
+          // Для Bild.de шаблона сохраняем оригинальный регистр
+          processedHeadline = headline;
+        } else {
+          // Если в шаблоне не указано, используем настройки из сайта
+          if (textTransform === 'uppercase') {
+            processedHeadline = headline.toUpperCase();
+          } else if (textTransform === 'lowercase') {
+            processedHeadline = headline.toLowerCase();
+          }
+        }
+
+        console.log('Bild.de шрифт:', fontFamily, 'вес:', templateFontWeight);
+
+        while (fontSize > 12) {
+          ctx.font = `${templateFontWeight} ${fontSize}px ${fontFamily}`;
+          lines = [];
+          let currentLine = '';
+          const words = processedHeadline.split(' ');
+
+          // Для варианта 2 используем более строгие ограничения ширины
+          const effectiveMaxWidth = variant === 2 ? maxWidth * 0.85 :
+                                   variant === 3 ? maxWidth * 0.9 : maxWidth;
+
+          for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine ? `${currentLine} ${word}` : word;
+            const testWidth = ctx.measureText(testLine).width;
+
+            // Более строгая проверка ширины с учетом отступов
+            if (testWidth > effectiveMaxWidth && currentLine) {
+              // Проверяем, можем ли мы добавить следующее слово для лучшего распределения (только для варианта 2)
+              if (variant === 2 && i < words.length - 1) {
+                const nextWord = words[i + 1];
+                const testWithNext = `${currentLine} ${word} ${nextWord}`;
+                const widthWithNext = ctx.measureText(testWithNext).width;
+
+                // Если добавление следующего слова не превышает лимит значительно, добавляем оба
+                if (widthWithNext <= effectiveMaxWidth * 1.05) {
+                  currentLine = testWithNext;
+                  i++; // Пропускаем следующее слово
+                  continue;
+                }
+              }
+
+              lines.push(currentLine);
+              currentLine = word;
+              // Проверяем, что одно слово не превышает максимальную ширину (только для вариантов 2 и 3)
+              if (variant !== 1 && ctx.measureText(word).width > effectiveMaxWidth) {
+                // Если слово слишком длинное, принудительно уменьшаем шрифт
+                fontSize = fontSize * 0.9;
+                ctx.font = `${templateFontWeight} ${fontSize}px ${fontFamily}`;
+                break;
+              }
+            } else {
+              currentLine = testLine;
+            }
+          }
+          if (currentLine) {
+            lines.push(currentLine);
+          }
+
+          const lineHeight = fontSize * 1.2;
+          const totalTextHeight = lines.length * lineHeight;
+
+          if (totalTextHeight <= height * 0.35 && lines.length <= 4) {
+            break;
+          }
+          fontSize--;
+        }
+
+        const lineHeight = fontSize * 1.2;
+        const totalTextHeight = lines.length * lineHeight;
+        const startY = height - totalTextHeight - padding;
+        
+        // Анализируем яркость в области текста
+        const textAreaBrightness = analyzeImageBrightness(
+          padding, 
+          startY - padding/2, 
+          width - padding*2, 
+          totalTextHeight + padding
+        );
+        
+        console.log('Анализ яркости области текста:', textAreaBrightness);
+        
+        // Для брендированного шаблона всегда используем подложку Bild.de
+        const needsBackground = true;
+        
+        if (variant === 2) {
+          // Вариант 2: Белая плашка с фиксированным размером и структурированным текстом
+          
+          // Определяем размеры белой плашки - до самого низа баннера
+          const plashkaWidth = width;
+          const plashkaY = startY - bildTemplate.padding;
+          const plashkaHeight = height - plashkaY;
+          const plashkaX = 0;
+
+          // Рисуем белую плашку с закругленными углами
+          ctx.fillStyle = bildTemplate.backgroundColor;
+          ctx.beginPath();
+          ctx.roundRect(plashkaX, plashkaY, plashkaWidth, plashkaHeight, parseInt(bildTemplate.borderRadius));
+          ctx.fill();
+
+          // Теперь размещаем текст на белой плашке
+          const textStartX = plashkaX + bildTemplate.padding;
+          const textStartY = plashkaY + bildTemplate.padding;
+
+          lines.forEach((line, index) => {
+            const y = textStartY + (index * lineHeight);
+
+            if (index === 0) {
+              // Первая строка - киккер с красной подложкой
+              ctx.font = `${templateFontWeight} ${fontSize * 0.8}px ${fontFamily}`;
+              const lineWidth = ctx.measureText(line).width;
+
+              // Проверяем, что киккер помещается в плашку
+              const maxKickerWidth = plashkaWidth - bildTemplate.padding * 2;
+              const kickerPadding = 4;
+              const kickerX = textStartX;
+              const kickerY = y - 2;
+              const kickerWidth = Math.min(lineWidth + kickerPadding * 2, maxKickerWidth);
+              const kickerHeight = fontSize * 0.8 + 4;
+
+              ctx.fillStyle = bildTemplate.kickerBg;
+              ctx.fillRect(kickerX - kickerPadding, kickerY, kickerWidth, kickerHeight);
+
+              ctx.fillStyle = bildTemplate.kickerTextColor;
+              ctx.fillText(line, kickerX, y);
+            } else if (index === 1) {
+              // Вторая строка - основной заголовок (черный, крупный)
+              ctx.fillStyle = bildTemplate.mainTextColor;
+              ctx.font = `900 ${fontSize * 1.1}px ${fontFamily}`;
+
+              // Проверяем ширину основного заголовка
+              const mainLineWidth = ctx.measureText(line).width;
+              const maxMainWidth = plashkaWidth - bildTemplate.padding * 2;
+              if (mainLineWidth > maxMainWidth) {
+                // Уменьшаем размер шрифта если не помещается
+                const scaleFactor = maxMainWidth / mainLineWidth;
+                ctx.font = `900 ${fontSize * 1.1 * scaleFactor}px ${fontFamily}`;
+              }
+
+              ctx.fillText(line, textStartX, y);
+            } else {
+              // Остальные строки - подзаголовок (серый, мельче)
+              ctx.fillStyle = bildTemplate.subTextColor;
+              ctx.font = `400 ${fontSize * 0.9}px ${fontFamily}`;
+
+              // Проверяем ширину подзаголовка
+              const subLineWidth = ctx.measureText(line).width;
+              const maxSubWidth = plashkaWidth - bildTemplate.padding * 2;
+              if (subLineWidth > maxSubWidth) {
+                // Уменьшаем размер шрифта если не помещается
+                const scaleFactor = maxSubWidth / subLineWidth;
+                ctx.font = `400 ${fontSize * 0.9 * scaleFactor}px ${fontFamily}`;
+              }
+
+              ctx.fillText(line, textStartX, y);
+            }
+          });
+        } else if (variant === 1) {
+          // Вариант 1: Все строки с красной подложкой (текущий)
+          lines.forEach((line, index) => {
+            const y = startY + (index * lineHeight);
+
+            // Измеряем ширину конкретной строки
+            ctx.font = `${templateFontWeight} ${fontSize}px ${fontFamily}`;
+            const lineWidth = ctx.measureText(line).width;
+
+            // Создаем компактную подложку в стиле Bild.de
+            const linePadding = 6;
+            const bgX = padding - linePadding;
+            const bgY = y - 3;
+            const bgWidth = lineWidth + linePadding * 2;
+            const bgHeight = fontSize + 6;
+
+            // Характерная красная подложка Bild.de
+            ctx.fillStyle = bildTemplate.backgroundColor;
+            ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
+
+            // Белый жирный текст на красной подложке
+            ctx.fillStyle = bildTemplate.textColor;
+            ctx.fillText(line, padding, y);
+          });
+        } else {
+          // Вариант 3: Текст прямо на изображении (как в bild2.png) - выровнен по центру
+          lines.forEach((line, index) => {
+            const y = startY + (index * lineHeight);
+
+            if (index === 0) {
+              // Первая строка - киккер с красной подложкой по центру
+              ctx.font = `${templateFontWeight} ${fontSize * 0.8}px ${fontFamily}`;
+              const lineWidth = ctx.measureText(line).width;
+
+              const kickerPadding = 4;
+              const kickerX = (width - lineWidth) / 2; // Центрируем киккер
+              const kickerY = y - 2;
+              const kickerWidth = lineWidth + kickerPadding * 2;
+              const kickerHeight = fontSize * 0.8 + 4;
+
+              ctx.fillStyle = bildTemplate.backgroundColor;
+              ctx.fillRect(kickerX - kickerPadding, kickerY, kickerWidth, kickerHeight);
+
+              ctx.fillStyle = '#ffffff';
+              ctx.fillText(line, kickerX, y);
+            } else {
+              // Остальные строки - белый текст с тенью для эффекта тиснения, выровненный по центру
+              const largeFontSize = fontSize * 1.15;
+              ctx.font = `900 ${largeFontSize}px ${fontFamily}`;
+
+              // Проверяем ширину строки и масштабируем шрифт если нужно
+              let lineWidth = ctx.measureText(line).width;
+              let actualFontSize = largeFontSize;
+
+              // Если строка слишком широкая, уменьшаем шрифт
+              const maxLineWidth = width * 0.9;
+              if (lineWidth > maxLineWidth) {
+                const scaleFactor = maxLineWidth / lineWidth;
+                actualFontSize = largeFontSize * scaleFactor;
+                ctx.font = `900 ${actualFontSize}px ${fontFamily}`;
+                lineWidth = ctx.measureText(line).width;
+              }
+
+              // Вычисляем позицию для центрирования
+              const centeredX = (width - lineWidth) / 2;
+
+              // Создаем эффект тиснения с помощью тени
+              const shadowOffset = Math.max(1, actualFontSize * 0.02);
+
+              // Темная тень снизу-справа для объема
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+              ctx.fillText(line, centeredX + shadowOffset, y + shadowOffset);
+
+              // Светлая тень сверху-слева для подсветки
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+              ctx.fillText(line, centeredX - shadowOffset/2, y - shadowOffset/2);
+
+              // Основной белый текст
+              ctx.fillStyle = '#ffffff';
+              ctx.fillText(line, centeredX, y);
+            }
+          });
+        }
+
+        canvas.toBlob((blob) => {
+          const url = URL.createObjectURL(blob);
+          resolve(url);
+        }, 'image/png');
+      };
+
+      img.onerror = () => {
+        // Fallback для брендированного баннера
+        resolve(imageUrl);
+      };
+
+      img.src = imageUrl;
+    });
+  };
 
   const createBannerWithText = async (imageUrl, headline, size, template, composition, isUploaded = false) => {
     return new Promise((resolve) => {
@@ -256,25 +667,31 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
             lines = [];
             let currentLine = '';
             const words = headline.split(' ');
-            
+
             for (const word of words) {
                 const testLine = currentLine ? `${currentLine} ${word}` : word;
-                if (ctx.measureText(testLine).width > maxWidth && currentLine) {
+                const testWidth = ctx.measureText(testLine).width;
+
+                // Более строгая проверка ширины с запасом
+                if (testWidth > maxWidth * 0.95 && currentLine) {
                     lines.push(currentLine);
                     currentLine = word;
                 } else {
                     currentLine = testLine;
                 }
             }
-            lines.push(currentLine);
+            if (currentLine) {
+                lines.push(currentLine);
+            }
 
             const lineHeight = fontSize * 1.1;
             const totalTextHeight = lines.length * lineHeight;
-            
-            if (totalTextHeight <= textHeight - 8) { 
-                break; 
+            const maxLines = 3; // Ограничиваем количество строк для плашки
+
+            if (totalTextHeight <= textHeight - 8 && lines.length <= maxLines) {
+                break;
             }
-            
+
             fontSize--;
         }
 
@@ -284,9 +701,13 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
 
         lines.forEach((line, index) => {
             const y = startY + (index * lineHeight);
-            // Без тени/обводки — только чистый текст
-            ctx.fillStyle = '#ffffff';
-            ctx.fillText(line, width / 2, y);
+
+            // Проверяем, что текст не выходит за границы плашки
+            if (y > imageHeight && y + fontSize <= height) {
+                // Без тени/обводки — только чистый текст
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(line, width / 2, y);
+            }
         });
 
         canvas.toBlob((blob) => {
@@ -371,6 +792,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
     console.log('[BannerStep] Current banners:', banners);
     console.log('[BannerStep] Original banners found:', originalBanners);
     console.log('[BannerStep] Is restored mode:', initialConfig && initialConfig._isRestored);
+    console.log('[BannerStep] Is branded template:', isBrandedTemplate);
     
     if (!(initialConfig && initialConfig._isRestored)) {
       setBanners([]); // Очищаем только если не в режиме редактирования
@@ -379,6 +801,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
       console.log('Generating banners using multi-agent system...');
       console.log('Config imageModel:', config.imageModel);
       
+      // Standard flow with selected headline - works for both branded and regular templates
       const result = await generateBannerFromHeadline({
         selectedHeadline: config.selected_headline,
         size: config.size,
@@ -387,21 +810,34 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
         webContent: config.webContent,
         url: config.url,
         imageModel: config.imageModel,
-        sessionId: sessionId
+        sessionId: sessionId,
+        brandingData: config.brandingData,
+        useBrandStyle: config.useBrandStyle,
+        selectedVariant: config.selectedVariant
       });
       
       // Compose final images with text overlay on canvas
       const generatedBanners = (await Promise.all(
-        result.banners.map(async (banner) => {
+        result.banners.map(async (banner, index) => {
           try {
-            const composedUrl = await createBannerWithText(
-              banner.imageUrl,
-              banner.headline,
-              `${banner.size.width}x${banner.size.height}`,
-              banner.template,
-              banner.composition,
-              banner.isUploadedImage
-            );
+            // Используем брендированную функцию для брендированных шаблонов
+            console.log('[BannerStep] isBrandedTemplate:', isBrandedTemplate, 'config.template:', config.template);
+            const composedUrl = isBrandedTemplate
+              ? await createBrandedBanner(
+                  banner.imageUrl,
+                  banner.headline,
+                  `${banner.size.width}x${banner.size.height}`,
+                  config.brandingData, // может быть null, функция использует fallback
+                  index // передаем индекс для fallback выбора варианта если selectedVariant не указан
+                )
+              : await createBannerWithText(
+                  banner.imageUrl,
+                  banner.headline,
+                  `${banner.size.width}x${banner.size.height}`,
+                  banner.template,
+                  banner.composition,
+                  banner.isUploadedImage
+                );
             return {
               id: banner.id,
               url: composedUrl || banner.imageUrl,
@@ -483,14 +919,23 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
       const generatedBanners = (await Promise.all(
         result.images.map(async (image, index) => {
           try {
-            const composedUrl = await createBannerWithText(
-              image.url,
-              config.selected_headline,
-              `${config.size}`,
-              config.template,
-              { padding: 20, fontSize: 'auto' },
-              false
-            );
+            // Используем брендированную функцию для брендированных шаблонов
+            const composedUrl = isBrandedTemplate
+              ? await createBrandedBanner(
+                  image.url,
+                  config.selected_headline,
+                  `${config.size}`,
+                  config.brandingData, // может быть null, функция использует fallback
+                  index // используется как fallback если selectedVariant не указан
+                )
+              : await createBannerWithText(
+                  image.url,
+                  config.selected_headline,
+                  `${config.size}`,
+                  config.template,
+                  { padding: 20, fontSize: 'auto' },
+                  false
+                );
             return {
               url: composedUrl,
               headline: config.selected_headline,
@@ -536,12 +981,13 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
   };
 
   useEffect(() => {
-    if (!config.selected_headline) return;
-    const key = JSON.stringify([config.selected_headline, uploadedImage, config.size, config.template]);
+    // Requires selected headline for all templates (both regular and branded)
+    if (!config.selected_headline || config.selected_headline.trim() === '') return;
+    const key = JSON.stringify([config.selected_headline, uploadedImage, config.size, config.template, config.selectedVariant]);
     if (lastRequestKeyRef.current === key) return;
     lastRequestKeyRef.current = key;
     generateBanners();
-  }, [uploadedImage, config.selected_headline, config.size, config.template, generateBanners]);
+  }, [uploadedImage, config.selected_headline, config.size, config.template, config.selectedVariant, generateBanners]);
 
   const downloadBanner = async (bannerUrl, index) => {
     try {
@@ -691,19 +1137,35 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
         <CardContent className="p-6">
           {/* Информация о баннере */}
           <div className="text-center mb-8 p-4 bg-gray-50 rounded-xl">
-            <div>
-              <p className="text-sm font-medium text-gray-500 mb-1">Заголовок</p>
-              <p className="font-semibold text-gray-900">{config.selected_headline}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
+            {config.selected_headline && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-gray-500 mb-1">Заголовок</p>
+                <p className="font-semibold text-gray-900">{config.selected_headline}</p>
+              </div>
+            )}
+            
+            {isBrandedTemplate && config.brandingData && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-gray-500 mb-1">Бренд</p>
+                <p className="font-semibold text-gray-900">{config.brandingData.title}</p>
+                <p className="text-sm text-gray-600">{config.brandingData.industry}</p>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">Размер</p>
                 <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 font-semibold">{config.size}</Badge>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">Стиль</p>
-                <Badge variant="secondary" className={`font-semibold ${config.template === 'blue_white' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>
-                  {config.template === 'blue_white' ? 'Синий стиль' : 'Красный стиль'}
+                <Badge variant="secondary" className={`font-semibold ${
+                  config.template === 'branded' ? 'bg-purple-100 text-purple-800' :
+                  config.template === 'blue_white' ? 'bg-blue-100 text-blue-800' : 
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {config.template === 'branded' ? 'Брендированный' :
+                   config.template === 'blue_white' ? 'Синий стиль' : 'Красный стиль'}
                 </Badge>
               </div>
             </div>
@@ -767,9 +1229,14 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                 className="text-center py-16"
               >
                 <Loader2 className="w-16 h-16 animate-spin mx-auto mb-6 text-purple-500" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Создаем ваши баннеры</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {isBrandedTemplate ? 'Создаем брендированные баннеры' : 'Создаем ваши баннеры'}
+                </h3>
                 <p className="text-gray-600">
-                  {uploadedImage ? 'ИИ генерирует варианты и добавляет ваше изображение' : 'ИИ генерирует уникальные профессиональные дизайны'}
+                  {isBrandedTemplate ? 
+                    'ИИ создает баннеры в фирменном стиле вашего бренда' :
+                    uploadedImage ? 'ИИ генерирует варианты и добавляет ваше изображение' : 'ИИ генерирует уникальные профессиональные дизайны'
+                  }
                 </p>
               </motion.div>
             ) : (
@@ -920,7 +1387,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                     className="h-12 px-4 border-blue-300 text-blue-700 hover:bg-blue-50"
                   >
                     <Target className="w-4 h-4 mr-2" />
-                    С пожеланиями
+                    Улучшить изображение
                   </Button>
                   
                   <Button
