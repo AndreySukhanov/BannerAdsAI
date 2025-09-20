@@ -28,6 +28,17 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackForHeadline, setFeedbackForHeadline] = useState(null);
 
+  // Для брендированного шаблона - выбор варианта размещения текста
+  const [selectedVariant, setSelectedVariant] = useState(config.selectedVariant || 1);
+
+  const isBrandedTemplate = config.template === 'branded';
+
+  // Debug logs
+  console.log('[HeadlineStep] isBrandedTemplate:', isBrandedTemplate);
+  console.log('[HeadlineStep] config.template:', config.template);
+  console.log('[HeadlineStep] selectedHeadline:', selectedHeadline);
+  console.log('[HeadlineStep] selectedVariant:', selectedVariant);
+
   const generateHeadlines = useCallback(async () => {
     setIsGenerating(true);
     try {
@@ -36,13 +47,19 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
       const result = await generateHeadlinesMultiAgent({
         url: config.url,
         template: config.template,
-        sessionId: sessionId
+        sessionId: sessionId,
+        brandingData: config.brandingData,
+        useBrandStyle: config.useBrandStyle
       });
       
       
       // Keep full headline objects with translation data
+      // Применяем uppercase только для шаблонов, которые этого требуют
+      const shouldApplyUppercase = config.template !== 'branded';
       const processedHeadlines = result.headlines.map(h => ({
-        text: h.text?.toUpperCase() || h.toUpperCase(),
+        text: shouldApplyUppercase 
+          ? (h.text?.toUpperCase() || h.toUpperCase())
+          : (h.text || h),
         language: h.language || 'ru',
         russianTranslation: h.russianTranslation
       }));
@@ -91,7 +108,16 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
     setConfig({
       ...config,
       selected_headline: headlineText,
-      selected_headline_object: headline
+      selected_headline_object: headline,
+      selectedVariant: isBrandedTemplate ? selectedVariant : undefined
+    });
+  };
+
+  const selectVariant = (variant) => {
+    setSelectedVariant(variant);
+    setConfig({
+      ...config,
+      selectedVariant: variant
     });
   };
 
@@ -106,12 +132,16 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
     const originalHeadline = headlines[index];
     const headlineText = typeof originalHeadline === 'string' ? originalHeadline : originalHeadline.text;
     
+    // Применяем uppercase только для шаблонов, которые этого требуют
+    const shouldApplyUppercase = config.template !== 'branded';
+    const processedEditedHeadline = shouldApplyUppercase ? editedHeadline.toUpperCase() : editedHeadline;
+    
     // Update the headline while preserving translation data
     updatedHeadlines[index] = typeof originalHeadline === 'string' 
-      ? editedHeadline.toUpperCase()
+      ? processedEditedHeadline
       : {
           ...originalHeadline,
-          text: editedHeadline.toUpperCase()
+          text: processedEditedHeadline
         };
     
     setHeadlines(updatedHeadlines);
@@ -124,11 +154,11 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
     
     // If this was the selected headline, update it too
     if (selectedHeadline === headlineText) {
-      setSelectedHeadline(editedHeadline.toUpperCase());
+      setSelectedHeadline(processedEditedHeadline);
       setConfig({
         ...config,
         generated_headlines: updatedHeadlines,
-        selected_headline: editedHeadline.toUpperCase(),
+        selected_headline: processedEditedHeadline,
         selected_headline_object: updatedHeadlines[index]
       });
     }
@@ -159,8 +189,12 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
       });
       
       // Keep full headline objects with translation data for regenerated headlines
+      // Применяем uppercase только для шаблонов, которые этого требуют
+      const shouldApplyUppercase = config.template !== 'branded';
       const processedHeadlines = result.headlines.map(h => ({
-        text: h.text?.toUpperCase() || h.toUpperCase(),
+        text: shouldApplyUppercase 
+          ? (h.text?.toUpperCase() || h.toUpperCase())
+          : (h.text || h),
         language: h.language || 'ru',
         russianTranslation: h.russianTranslation
       }));
@@ -224,8 +258,15 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
       <div className="step-header mb-6">
         <div className="step-number">4</div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Выберите заголовок и изображение</h2>
-          <p className="text-gray-600">ИИ создал эффективные заголовки в разных стилях для вашего баннера</p>
+          <h2 className="text-xl font-bold text-gray-900">
+            {isBrandedTemplate ? 'Выберите заголовок и стиль размещения' : 'Выберите заголовок и изображение'}
+          </h2>
+          <p className="text-gray-600">
+            {isBrandedTemplate
+              ? 'ИИ создал эффективные заголовки и варианты размещения текста для брендированного баннера'
+              : 'ИИ создал эффективные заголовки в разных стилях для вашего баннера'
+            }
+          </p>
         </div>
       </div>
 
@@ -235,7 +276,8 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
           <div className="flex flex-wrap gap-3 mb-6">
             <Badge variant="secondary" className="px-4 py-2">{config.size}</Badge>
             <Badge variant="secondary" className="px-4 py-2">
-              {config.template === 'blue_white' ? 'Синий стиль' : 'Красный стиль'}
+              {isBrandedTemplate ? 'Брендированный стиль' :
+               config.template === 'blue_white' ? 'Синий стиль' : 'Красный стиль'}
             </Badge>
             <Badge variant="secondary" className="px-4 py-2 truncate max-w-xs">
               {new URL(config.url).hostname}
@@ -475,8 +517,8 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
             )}
           </AnimatePresence>
 
-          {/* Font Selection */}
-          {selectedHeadline && (
+          {/* Font Selection - только для стандартных шаблонов */}
+          {selectedHeadline && !isBrandedTemplate && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -488,9 +530,9 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                   Выберите шрифт для заголовка
                 </Label>
               </div>
-              
-              <Select 
-                value={config.font || 'roboto'} 
+
+              <Select
+                value={config.font || 'roboto'}
                 onValueChange={(value) => setConfig({...config, font: value})}
               >
                 <SelectTrigger className="h-12 text-base border-gray-200 focus:border-indigo-500 rounded-xl bg-white">
@@ -523,15 +565,15 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                   </SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <p className="text-sm text-gray-600">
                 Выбранный шрифт будет применен к заголовку на всех баннерах
               </p>
             </motion.div>
           )}
 
-          {/* Image Model Selection */}
-          {selectedHeadline && (
+          {/* Image Model Selection - только для стандартных шаблонов */}
+          {selectedHeadline && !isBrandedTemplate && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -543,9 +585,9 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                   Выберите модель генерации изображений
                 </Label>
               </div>
-              
-              <Select 
-                value={config.imageModel || 'recraftv3'} 
+
+              <Select
+                value={config.imageModel || 'recraftv3'}
                 onValueChange={(value) => {
                   console.log('Setting imageModel to:', value);
                   setConfig({...config, imageModel: value});
@@ -581,58 +623,80 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                   </SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <p className="text-sm text-gray-600">
                 Выбранная модель будет использована для создания фоновых изображений баннеров
               </p>
             </motion.div>
           )}
 
-          {/* Real-time Banner Preview */}
-          {selectedHeadline && (
+          {/* Выбор варианта размещения текста - только для брендированного шаблона */}
+          {selectedHeadline && isBrandedTemplate && (
+            console.log('[HeadlineStep] Showing variant selection UI') || true) && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-4 mt-6 mb-6"
+              className="space-y-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 mt-6"
             >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Target className="w-5 h-5 text-purple-600" />
-                  Предпросмотр баннера
-                </h3>
-                <Badge className="text-xs bg-green-100 text-green-700 border-green-200 pointer-events-none">
-                  Live Preview
-                </Badge>
+              <div className="flex items-center gap-3">
+                <Type className="w-5 h-5 text-blue-600" />
+                <Label className="text-base font-semibold text-gray-900">
+                  Выберите стиль размещения текста
+                </Label>
               </div>
-              
-              <div className="flex flex-col items-center space-y-4">
-                <div className="text-center">
-                  <BannerPreview
-                    headline={editingIndex !== null ? editedHeadline : selectedHeadline}
-                    font={config.font || 'roboto'}
-                    template={config.template}
-                    size={config.size}
-                    className="mx-auto"
-                  />
-                </div>
-                
-                <div className="text-center space-y-2">
-                  <div className="text-sm text-gray-600">
-                    {config.size} • {config.template === 'blue_white' ? 'Деловой стиль' : 'Энергичный стиль'} • {config.font || 'roboto'}
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map((variant) => (
+                  <div
+                    key={variant}
+                    onClick={() => selectVariant(variant)}
+                    className={`relative rounded-xl border-2 cursor-pointer transition-all hover:shadow-lg ${
+                      selectedVariant === variant
+                        ? 'border-red-500 shadow-lg'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {/* Preview баннера */}
+                    <div className="p-4">
+                      <BannerPreview
+                        headline={selectedHeadline}
+                        template="branded"
+                        variant={variant}
+                        size={config.size || '300x250'}
+                        brandingData={config.brandingData}
+                        className="w-full"
+                      />
+                    </div>
+
+                    {/* Описание варианта */}
+                    <div className="p-4 border-t border-gray-100">
+                      <div className="text-center space-y-2">
+                        <h4 className="font-semibold text-gray-900">
+                          Вариант {variant}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {variant === 1 && 'Красная подложка под каждой строкой'}
+                          {variant === 2 && 'Структурированный текст на белой плашке'}
+                          {variant === 3 && 'Центрированный текст с эффектом тиснения'}
+                        </p>
+
+                        {selectedVariant === variant && (
+                          <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center mx-auto">
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {(editingIndex !== null ? editedHeadline : selectedHeadline).length}/100 символов
-                  </div>
-                </div>
-                  
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 max-w-md">
-                  <p className="text-xs text-blue-700 text-center">
-                    Предварительный просмотр. Финальные баннеры будут с уникальными AI-изображениями
-                  </p>
-                </div>
+                ))}
               </div>
+
+              <p className="text-sm text-gray-600">
+                Выберите стиль размещения текста для вашего брендированного баннера
+              </p>
             </motion.div>
           )}
+
 
 
           <div className="flex gap-4">
@@ -657,7 +721,7 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
             
             <Button
               onClick={onNext}
-              disabled={!selectedHeadline}
+              disabled={!selectedHeadline || (isBrandedTemplate && !selectedVariant)}
               className="flex-1 h-12 gradient-button"
             >
               Создать баннеры
