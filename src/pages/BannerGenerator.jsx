@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 
 import HeadlineStep from "../components/generator/HeadlineStep";
 import BannerStep from "../components/generator/BannerStep";
-import BrandStyleStep from "../components/generator/BrandStyleStep";
 
 export default function BannerGenerator({ sessionId, initialConfig, onConfigChange }) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -56,8 +55,6 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
     } else if (currentStep === 2 && config.size) {
       setCurrentStep(3);
     } else if (currentStep === 3 && config.template) {
-      setCurrentStep(4);
-    } else if (currentStep === 4) {
       setCurrentStep(5);
     }
   };
@@ -80,24 +77,16 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
     // setCurrentStep(4);
   };
 
-  if (currentStep >= 4) {
+  if (currentStep >= 5) {
     return (
       <div className="max-w-4xl mx-auto px-6">
-        {currentStep === 4 && (
-          <BrandStyleStep 
-            config={config} 
-            setConfig={setConfig}
-            onNext={() => setCurrentStep(5)}
-            onBack={() => setCurrentStep(3)}
-          />
-        )}
         {currentStep === 5 && (
           <HeadlineStep
             config={config}
             setConfig={setConfig}
             sessionId={sessionId}
             onNext={() => setCurrentStep(6)}
-            onBack={() => setCurrentStep(4)}
+            onBack={() => setCurrentStep(3)}
           />
         )}
         {currentStep === 6 && (
@@ -366,19 +355,10 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
           </div>
         )}
 
+
         {currentStep < 4 && (
           <div className="step-header">
             <div className="step-number">4</div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Настройка фирменного стиля</h2>
-              <p className="text-gray-600">Анализ сайта для создания брендированных баннеров</p>
-            </div>
-          </div>
-        )}
-
-        {currentStep < 5 && (
-          <div className="step-header">
-            <div className="step-number">5</div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Выберите заголовок и изображение</h2>
               <p className="text-gray-600">Определите самый привлекательный вариант для вашего баннера</p>
@@ -386,9 +366,9 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
           </div>
         )}
 
-        {currentStep < 6 && (
+        {currentStep < 5 && (
           <div className="step-header">
-            <div className="step-number">6</div>
+            <div className="step-number">5</div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Готовые баннеры</h2>
               <p className="text-gray-600">Ваши персонализированные рекламные креативы готовы</p>
