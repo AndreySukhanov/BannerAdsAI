@@ -254,50 +254,62 @@ export default function BannerGenerator({ sessionId, initialConfig, onConfigChan
                 <span className="font-semibold text-gray-900">Цветовая схема</span>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-stretch">
                 <button
                   onClick={() => handleTemplateSelect('blue_white')}
-                  className={`p-6 rounded-xl border-2 text-center transition-all ${
+                  className={`p-6 rounded-xl border-2 text-center transition-all h-full flex flex-col ${
                     config.template === 'blue_white'
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="w-full h-12 bg-blue-600 rounded-lg mb-4 flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">Пример</span>
+                  <div className="flex-1 flex flex-col">
+                    <div className="w-full h-12 bg-blue-600 rounded-lg mb-4 flex items-center justify-center">
+                      <span className="text-white font-semibold text-sm">Пример</span>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div className="font-semibold text-gray-900">Синий фон + белый текст</div>
+                      <div className="text-sm text-gray-500">Деловой стиль</div>
+                    </div>
                   </div>
-                  <div className="font-semibold text-gray-900">Синий фон + белый текст</div>
-                  <div className="text-sm text-gray-500">Деловой стиль</div>
                 </button>
 
                 <button
                   onClick={() => handleTemplateSelect('red_white')}
-                  className={`p-6 rounded-xl border-2 text-center transition-all ${
+                  className={`p-6 rounded-xl border-2 text-center transition-all h-full flex flex-col ${
                     config.template === 'red_white'
                       ? 'border-red-500 bg-red-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="w-full h-12 bg-red-600 rounded-lg mb-4 flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">Пример</span>
+                  <div className="flex-1 flex flex-col">
+                    <div className="w-full h-12 bg-red-600 rounded-lg mb-4 flex items-center justify-center">
+                      <span className="text-white font-semibold text-sm">Пример</span>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div className="font-semibold text-gray-900">Красный фон + белый текст</div>
+                      <div className="text-sm text-gray-500">Энергичный стиль</div>
+                    </div>
                   </div>
-                  <div className="font-semibold text-gray-900">Красный фон + белый текст</div>
-                  <div className="text-sm text-gray-500">Энергичный стиль</div>
                 </button>
 
                 <button
                   onClick={() => handleTemplateSelect('branded')}
-                  className={`p-6 rounded-xl border-2 text-center transition-all ${
+                  className={`p-6 rounded-xl border-2 text-center transition-all h-full flex flex-col ${
                     config.template === 'branded'
                       ? 'border-purple-500 bg-purple-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg mb-4 flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">🎨 Бренд</span>
+                  <div className="flex-1 flex flex-col">
+                    <div className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg mb-4 flex items-center justify-center">
+                      <span className="text-white font-semibold text-sm">Бренд</span>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div className="font-semibold text-gray-900">Брендированный стиль</div>
+                      <div className="text-sm text-gray-500">Фирменные цвета</div>
+                    </div>
                   </div>
-                  <div className="font-semibold text-gray-900">Брендированный стиль</div>
-                  <div className="text-sm text-gray-500">Фирменные цвета</div>
                 </button>
               </div>
 
