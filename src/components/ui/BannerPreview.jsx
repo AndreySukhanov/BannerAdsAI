@@ -290,11 +290,9 @@ export default function BannerPreview({
     let lineHeight = fontSize * 1.05;
     let totalHeight = lines.length * lineHeight;
 
-    // Debug info for long texts
-    if (headline.length > 80) {
-      console.log(`Long text (${headline.length} chars): ${headline.substring(0, 50)}...`);
-      console.log(`Initial: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}, plaque=${textAreaHeight}`);
-    }
+    // Debug info for ALL texts to find the issue
+    console.log(`[DEBUG] Text (${headline.length} chars): "${headline}"`);
+    console.log(`[DEBUG] Initial: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}, plaque=${textAreaHeight}`);
 
     // More aggressive loop - ensure text ALWAYS fits
     let iterations = 0;
@@ -323,14 +321,12 @@ export default function BannerPreview({
 
       totalHeight = lines.length * lineHeight;
 
-      if (headline.length > 80 && iterations <= 5) {
-        console.log(`Iteration ${iterations}: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}`);
+      if (iterations <= 5) {
+        console.log(`[DEBUG] Iteration ${iterations}: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}`);
       }
     }
 
-    if (headline.length > 80) {
-      console.log(`Final: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}, fits=${totalHeight <= textAreaHeight - 4}`);
-    }
+    console.log(`[DEBUG] Final: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}, fits=${totalHeight <= textAreaHeight - 4}`);
 
     // Draw text background - full width at bottom
     const backgroundHeight = textAreaHeight;
