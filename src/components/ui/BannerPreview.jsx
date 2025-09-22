@@ -248,12 +248,13 @@ export default function BannerPreview({
     }
 
     // Setup text rendering
-    const textPadding = 8; // Very small padding from edges
+    const textPadding = 6; // Minimal padding from edges for better text space
     const maxWidth = width - (textPadding * 2); // Full width minus minimal padding
     const textAreaHeight = 30; // Fixed height for text area (same as backend)
     
     // Calculate font size based on text length and available space
-    let fontSize = Math.min(24, Math.max(12, maxWidth / headline.length * 1.8));
+    // Improved formula for better text fitting with long headlines
+    let fontSize = Math.min(24, Math.max(10, Math.sqrt(maxWidth * 20 / headline.length)));
     
     // Set font
     ctx.font = `bold ${fontSize}px ${getFontFamily(font)}`;

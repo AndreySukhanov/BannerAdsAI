@@ -98,7 +98,7 @@ export class BannerAgent {
   getTextOverlayConfig(template, headline, font = 'roboto') {
     const baseConfig = {
       text: headline,
-      maxWidth: 0.9, // 90% of banner width
+      maxWidth: 0.95, // 95% of banner width for better text fitting
       fontSize: 'auto', // Auto-calculated based on text length
       fontFamily: this.getFontFamily(font),
       fontWeight: 'bold',
