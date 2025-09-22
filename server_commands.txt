@@ -1,0 +1,6 @@
+s5-N.j3dcQ8849M
+cat /etc/nginx/sites-enabled/default
+pm2 status
+netstat -tlnp | grep -E ':(80|443|3001|4173)'
+cd /root/banner && ls -la
+exit

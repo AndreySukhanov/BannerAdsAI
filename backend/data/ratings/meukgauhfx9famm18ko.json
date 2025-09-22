@@ -1,0 +1,20 @@
+{
+  "id": "meukgauhfx9famm18ko",
+  "bannerId": 1,
+  "userId": "session_meuhds6z_8375bb43d3s",
+  "rating": 5,
+  "feedback": "",
+  "tags": [
+    "Подходящий шрифт"
+  ],
+  "timestamp": "2025-08-27T22:48:20.969Z",
+  "context": {
+    "bannerId": 1,
+    "headline": "НЕ УПУСТИТЕ ШАНС: ОЗНАКОМЬТЕСЬ С НОВЫМ ПЕРЕЧНЕМ ОБЯЗАТЕЛЬНЫХ ПРЕДМЕТОВ И ОБЕСПЕЧЬТЕ УСПЕШНОЕ ОБРАЗОВАНИЕ!",
+    "template": "blue_white",
+    "font": "roboto",
+    "imageModel": "recraftv3",
+    "size": "300x250",
+    "url": "https://ria.ru/20250824/predmety-2037233327.html"
+  }
+}

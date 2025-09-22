@@ -1,0 +1,18 @@
+{
+  "id": "mf5qvyxnheguwxivmqd",
+  "bannerId": 2,
+  "userId": "session_mf5quyag_xkjbc23h4zo",
+  "rating": 5,
+  "feedback": "",
+  "tags": [],
+  "timestamp": "2025-09-04T18:33:57.659Z",
+  "context": {
+    "bannerId": 2,
+    "headline": "NHS TRIBUNAL UNVEILS FINAL EVIDENCE: STAY INFORMED ON KEY DEVELOPMENTS IN HEALTHCARE RIGHTS",
+    "template": "blue_white",
+    "font": "roboto",
+    "imageModel": "recraftv3",
+    "size": "300x250",
+    "url": "https://www.theguardian.com/uk-news/2025/sep/02/nhs-nurses-tribunal-over-trans-doctors-use-of-changing-room-hears-final-evidence"
+  }
+}

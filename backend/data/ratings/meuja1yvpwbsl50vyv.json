@@ -1,0 +1,21 @@
+{
+  "id": "meuja1yvpwbsl50vyv",
+  "bannerId": 2,
+  "userId": "session_meuhduy4_x3apgs1kqd",
+  "rating": 5,
+  "feedback": "",
+  "tags": [
+    "Хорошие цвета",
+    "Удачная композиция"
+  ],
+  "timestamp": "2025-08-27T22:15:29.911Z",
+  "context": {
+    "bannerId": 2,
+    "headline": "ПОЛУЧИТЕ АКТУАЛЬНУЮ ИНФОРМАЦИЮ О НОВЫХ ОБЯЗАТЕЛЬНЫХ ШКОЛЬНЫХ ПРЕДМЕТАХ ДЛЯ УСПЕШНОГО ОБРАЗОВАНИЯ ВАШИХ ДЕТЕЙ!",
+    "template": "blue_white",
+    "font": "roboto",
+    "imageModel": "recraftv3",
+    "size": "300x250",
+    "url": "https://ria.ru/20250824/predmety-2037233327.html"
+  }
+}

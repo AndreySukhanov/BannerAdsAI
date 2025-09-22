@@ -11,6 +11,7 @@ import { saveDownloadedBanner } from "@/api/history-client";
 import { ratingAPI } from "@/api/rating-client";
 import { Label } from "@/components/ui/label";
 import RatingModal from "@/components/ui/RatingModal";
+import BannerPreview from "@/components/ui/BannerPreview";
 
 // --- Утилиты для работы с цветом ---
 
@@ -1254,16 +1255,32 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                     >
                       <CardContent className="p-4 flex flex-col h-full">
                         <div className="relative group mb-4">
-                          <img 
-                            src={banner.url} 
+                          {/* Серверное изображение */}
+                          <img
+                            src={banner.url}
                             alt={`Баннер ${index + 1}`}
                             className="w-full object-contain bg-gray-100 rounded-lg cursor-pointer transition-all group-hover:brightness-95"
-                            style={{ 
+                            style={{
                               aspectRatio: config.size === '300x250' ? '300/250' : '336/280',
                               maxHeight: '200px'
                             }}
                             onClick={(e) => handleZoomBanner(banner, index, e)}
                           />
+
+                          {/* Предпросмотр для blue_white/red_white */}
+                          {config.template !== 'branded' && config.selected_headline && (
+                            <div className="mt-2 p-2 bg-gray-50 rounded-lg">
+                              <p className="text-xs text-gray-600 mb-1">Предпросмотр текста:</p>
+                              <BannerPreview
+                                headline={config.selected_headline}
+                                template={config.template}
+                                size={config.size}
+                                className="w-full"
+                                style={{ maxHeight: '150px' }}
+                              />
+                            </div>
+                          )}
+
                           {/* Кнопка зума, появляется при наведении */}
                           <Button
                             variant="secondary"

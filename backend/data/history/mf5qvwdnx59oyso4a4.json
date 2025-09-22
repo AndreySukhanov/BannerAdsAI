@@ -1,0 +1,64 @@
+{
+  "id": "mf5qvwdnx59oyso4a4",
+  "sessionId": "session_mf5quyag_xkjbc23h4zo",
+  "timestamp": "2025-09-04T18:33:54.347Z",
+  "input": {
+    "url": "https://www.theguardian.com/uk-news/2025/sep/02/nhs-nurses-tribunal-over-trans-doctors-use-of-changing-room-hears-final-evidence",
+    "size": "300x250",
+    "template": "blue_white",
+    "font": "roboto",
+    "imageModel": "recraftv3",
+    "uploadedImage": null
+  },
+  "output": {
+    "webContent": {
+      "title": "NHS nurse’s tribunal over trans doctor’s use of changing room hears final evidence | UK news | The Guardian",
+      "description": "Last-minute application from NHS Fife’s lawyers to amend their pleadings means could delay case by months",
+      "headings": [
+        {
+          "level": 1,
+          "text": "NHS nurse’s tribunal over trans doctor’s use of changing room hears final evidence"
+        },
+        {
+          "level": 2,
+          "text": "Most viewed"
+        },
+        {
+          "level": 2,
+          "text": "Most viewed"
+        }
+      ],
+      "content": "The case centres around a disputed incident which took place in a changing room at Victoria hospital in Kirkcaldy on Christmas Eve 2023, after which Sandie  Peggie was suspended.  Photograph: Jeff J Mitchell/Getty ImagesView image in fullscreenThe case centres around a disputed incident which took place in a changing room at Victoria hospital in Kirkcaldy on Christmas Eve 2023, after which Sandie  Peggie was suspended.  Photograph: Jeff J Mitchell/Getty ImagesUK newsNHS nurse’s tribunal over trans doctor’s use of changing room hears final evidenceLast-minute application from NHS Fife’s lawyers to amend their pleadings means could delay case by monthsLibby Brooks Scotland correspondentTue 2 Sep 2025 19.45 CESTLast modified on Wed 3 Sep 2025 03.30 CESTShareAn employment tribunal brought by an NHS Fife nurse who objected to sharing a changing room with a transgender doctor has concluded its evidence with conflicting interpretations of how the supreme court’s landmark ruling on sex affects the case.Sandie Peggie, who has worked as a nurse for more than 30 years, contends she was subject to unlawful harassment under the Equality Act when she was expected to share a changing room with Dr Beth Upton.After closing submissions were heard on Monday and Tuesday in Dundee, the judge Sandy Kemp had been expected to begin his deliberations. Instead, the tribunal was thrown into chaos after a last-minute application from NHS Fife’s lawyers to amend their pleadings.The tribunal began in February and reconvened in July to hear further evidence. It has been followed closely across the UK to see how April’s supreme court ruling that “woman” and “sex” in the Equality Act refer only to a biological woman and to biological sex should be applied in practice. It is likely to be used as a template for other legal actions.The application by NHS Fife could delay the outcome for months while Kemp considers it, along with any resulting appeals. Peggie’s lawyer said the nurse was “in tears” at the prospect of further hearings.The case centres around a disputed incident which took place in a changing room at Victoria hospital in Kirkcaldy on Christmas Eve 2023, after which Upton made an allegation of bullying and harassment, leading to Peggie’s suspension.In July, NHS Fife confirmed Peggie had been cleared of the separate gross misconduct allegations after an 18-month internal process.Summing up her case on Monday, Peggie’s lawyer Naomi Cunningham repeatedly referenced the supreme court case brought by the gender-critical campaign group For Women Scotland. She told the tribunal: “Trans women are men. That reality is enshrined in law.”But Jane Russell KC, representing Fife NHS board and Upton, argued that the ruling “says that service providers – it doesn’t cover employers – can, but do not have to, exclude [trans women from single-sex facilities] by making use of the exceptions in schedule 3 of the Equality Act.”She added: “There is no authority that says an employer must do t",
+      "detectedLanguage": "en",
+      "wordCount": 896,
+      "extractedAt": "2025-09-04T18:33:28.164Z"
+    },
+    "selectedHeadline": "NHS TRIBUNAL UNVEILS FINAL EVIDENCE: STAY INFORMED ON KEY DEVELOPMENTS IN HEALTHCARE RIGHTS",
+    "banners": [
+      {
+        "id": 2,
+        "headline": "NHS TRIBUNAL UNVEILS FINAL EVIDENCE: STAY INFORMED ON KEY DEVELOPMENTS IN HEALTHCARE RIGHTS",
+        "imageUrl": "blob:http://localhost:5173/ae0d8c23-14da-4657-aef6-0d79a6023b39",
+        "size": {
+          "width": 300,
+          "height": 250
+        },
+        "template": "blue_white",
+        "isUploadedImage": false,
+        "createdAt": "2025-09-04T18:33:54.338Z"
+      }
+    ],
+    "images": [
+      {
+        "url": "blob:http://localhost:5173/ae0d8c23-14da-4657-aef6-0d79a6023b39"
+      }
+    ]
+  },
+  "metadata": {
+    "taskId": 2,
+    "generationTime": 0,
+    "bannersCount": 1,
+    "language": "unknown",
+    "status": "completed"
+  }
+}

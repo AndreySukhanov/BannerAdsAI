@@ -209,8 +209,6 @@ export default function BannerPreview({
   };
 
   useEffect(() => {
-    alert(`ТЕСТ: BannerPreview с заголовком ${headline?.length || 0} символов`);
-    console.log('[BANNER_PREVIEW] Component render started with headline:', headline);
     if (!headline || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
@@ -292,9 +290,11 @@ export default function BannerPreview({
     let lineHeight = fontSize * 1.05;
     let totalHeight = lines.length * lineHeight;
 
-    // Debug info for ALL texts to find the issue
-    console.log(`[DEBUG] Text (${headline.length} chars): "${headline}"`);
-    console.log(`[DEBUG] Initial: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}, plaque=${textAreaHeight}`);
+    // Debug info for long texts
+    if (headline.length > 80) {
+      console.log(`[DEBUG] Long text (${headline.length} chars): "${headline}"`);
+      console.log(`[DEBUG] Initial: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}, plaque=${textAreaHeight}`);
+    }
 
     // More aggressive loop - ensure text ALWAYS fits
     let iterations = 0;
@@ -323,12 +323,14 @@ export default function BannerPreview({
 
       totalHeight = lines.length * lineHeight;
 
-      if (iterations <= 5) {
+      if (headline.length > 80 && iterations <= 5) {
         console.log(`[DEBUG] Iteration ${iterations}: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}`);
       }
     }
 
-    console.log(`[DEBUG] Final: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}, fits=${totalHeight <= textAreaHeight - 4}`);
+    if (headline.length > 80) {
+      console.log(`[DEBUG] Final: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}, fits=${totalHeight <= textAreaHeight - 4}`);
+    }
 
     // Draw text background - full width at bottom
     const backgroundHeight = textAreaHeight;
