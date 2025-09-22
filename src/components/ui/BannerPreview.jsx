@@ -250,7 +250,7 @@ export default function BannerPreview({
     // Setup text rendering
     const textPadding = 6; // Minimal padding from edges for better text space
     const maxWidth = width - (textPadding * 2); // Full width minus minimal padding
-    const textAreaHeight = 30; // Fixed height for text area (same as backend)
+    const textAreaHeight = 40; // Increased height for better text fitting
     
     // Calculate font size based on text length and available space
     // Improved formula for better text fitting with long headlines
@@ -286,25 +286,27 @@ export default function BannerPreview({
     }
     if (currentLine) lines.push(currentLine);
 
-    // Adjust font size to fit in fixed height plaque (30px)
-    const maxLines = Math.floor(textAreaHeight / (fontSize * 1.2));
-    
+    // Adjust font size to fit in increased height plaque (40px)
+    const lineHeight = fontSize * 1.2;
+    const maxLines = Math.floor(textAreaHeight / lineHeight);
+
     // If text doesn't fit, reduce font size and re-wrap
     if (lines.length > maxLines) {
-      // Calculate maximum font size that fits
-      const maxFontSize = Math.floor((textAreaHeight - 4) / (lines.length * 1.2)); // 4px for padding
-      fontSize = Math.max(8, Math.min(fontSize, maxFontSize));
+      // Calculate maximum font size that fits with some padding
+      const availableHeight = textAreaHeight - 8; // 8px padding for better appearance
+      const maxFontSize = Math.floor(availableHeight / (lines.length * 1.2));
+      fontSize = Math.max(10, Math.min(fontSize, maxFontSize)); // Minimum 10px font
       ctx.font = `bold ${fontSize}px ${getFontFamily(font)}`;
-      
+
       // Re-wrap text with new font size
       const newMaxWidth = width - (textPadding * 2);
       const newLines = [];
       let newCurrentLine = '';
-      
+
       for (const word of words) {
         const testLine = newCurrentLine + (newCurrentLine ? ' ' : '') + word;
         const metrics = ctx.measureText(testLine);
-        
+
         if (metrics.width > newMaxWidth && newCurrentLine) {
           newLines.push(newCurrentLine);
           newCurrentLine = word;
@@ -313,15 +315,15 @@ export default function BannerPreview({
         }
       }
       if (newCurrentLine) newLines.push(newCurrentLine);
-      
+
       // Update lines with new wrapping
       lines.splice(0, lines.length, ...newLines);
     }
 
     // Draw text background - full width at bottom
-    const lineHeight = fontSize * 1.2;
-    const totalTextHeight = lines.length * lineHeight;
-    // Fixed height exactly 30px as in backend
+    const finalLineHeight = fontSize * 1.2;
+    const totalTextHeight = lines.length * finalLineHeight;
+    // Increased height to 40px for better text fitting
     const backgroundHeight = textAreaHeight;
     const backgroundY = height - backgroundHeight;
     // Background with full width at bottom
@@ -341,11 +343,11 @@ export default function BannerPreview({
     const plaqueCenterY = backgroundY + (backgroundHeight / 2);
 
     // For multiple lines, distribute them evenly around the center
-    const totalHeight = (lines.length - 1) * lineHeight;
+    const totalHeight = (lines.length - 1) * finalLineHeight;
     const startY = plaqueCenterY - (totalHeight / 2);
 
     lines.forEach((line, index) => {
-      const y = startY + (index * lineHeight);
+      const y = startY + (index * finalLineHeight);
       ctx.fillText(line, width / 2, y);
     });
 
