@@ -8,9 +8,14 @@ export class ImageAgent {
   }
 
   async generateImages({ content, headlines, count = 3, model = 'recraftv3', brandingData = null, useBrandStyle = false }) {
-    console.log(`[${this.name}] Generating ${count} images for content: ${content.title} using model: ${model}`);
+    const contentTitle = content?.title || 'No content provided';
+    console.log(`[${this.name}] Generating ${count} images for content: ${contentTitle} using model: ${model}`);
     console.log(`[${this.name}] Brand styling: ${useBrandStyle ? 'ENABLED' : 'DISABLED'}`);
-    
+
+    if (!content) {
+      console.warn(`[${this.name}] Warning: No content provided for image generation`);
+    }
+
     try {
       // Step 1: Generate image prompts based on content and headlines
       const imagePrompts = await this.generateImagePrompts(content, headlines, count, brandingData, useBrandStyle);
@@ -122,8 +127,8 @@ IMPORTANT: This is a BRANDED banner - the brand identity must be unmistakably pr
     const userPrompt = `Analyze this content and create ${count} authentic photographic concepts. The images must be strictly photorealistic and suitable for a science magazine cover.
 
 CONTENT TO ANALYZE:
-Title: ${content.title}
-Description: ${content.description}
+Title: ${content?.title || 'No title provided'}
+Description: ${content?.description || 'No description provided'}
 Banner Headlines: ${headlinesText}${brandStylingPrompt}
 
 TASK: Create ${count} different concepts for real photographs.
@@ -321,8 +326,8 @@ IMPORTANT: This is a BRANDED banner - the brand identity must be unmistakably pr
     const userPrompt = `Analyze this content and create ${count} authentic photographic concepts based on user feedback.
 
 CONTENT TO ANALYZE:
-Title: ${content.title}
-Description: ${content.description}
+Title: ${content?.title || 'No title provided'}
+Description: ${content?.description || 'No description provided'}
 Banner Headlines: ${headlinesText}${brandStylingPrompt}
 
 USER FEEDBACK: "${userFeedback}"
@@ -417,7 +422,7 @@ Return ${count} detailed photographic descriptions, one per line, numbered 1-${c
       // Создаем простое изображение с градиентом и текстом
       fallbackImages.push({
         id: i + 1,
-        url: this.createGradientImageDataUrl(color1, color2, content.title || 'Banner'),
+        url: this.createGradientImageDataUrl(color1, color2, content?.title || 'Banner'),
         prompt: `Fallback gradient image ${i + 1}`,
         enhancedPrompt: `Simple gradient background from ${color1} to ${color2}`,
         optimizedPrompt: `Gradient fallback`,

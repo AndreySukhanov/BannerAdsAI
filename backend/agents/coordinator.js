@@ -152,6 +152,16 @@ export class CoordinatorAgent {
         webContent = await this.agents.webscraping.analyzeUrl(request.url);
       }
 
+      // Fallback if webContent is still not available
+      if (!webContent) {
+        console.warn(`[Coordinator] No web content available for banner generation. Using headline as fallback.`);
+        webContent = {
+          title: request.selectedHeadline || 'Banner Title',
+          description: 'Generated banner content',
+          url: request.url || ''
+        };
+      }
+
       const images = await this.agents.image.generateImages({
         content: webContent,
         headlines: [request.selectedHeadline],
