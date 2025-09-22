@@ -250,7 +250,7 @@ export default function BannerPreview({
     // Setup text rendering
     const textPadding = 6; // Minimal padding from edges for better text space
     const maxWidth = width - (textPadding * 2); // Full width minus minimal padding
-    const textAreaHeight = 40; // Increased height for better text fitting
+    const textAreaHeight = 50; // Further increased height for long headlines
     
     // Calculate font size based on text length and available space
     // Improved formula for better text fitting with long headlines
@@ -286,16 +286,13 @@ export default function BannerPreview({
     }
     if (currentLine) lines.push(currentLine);
 
-    // Adjust font size to fit in increased height plaque (40px)
+    // Adjust font size to fit in increased height plaque (50px)
     const lineHeight = fontSize * 1.2;
     const maxLines = Math.floor(textAreaHeight / lineHeight);
 
-    // If text doesn't fit, reduce font size and re-wrap
-    if (lines.length > maxLines) {
-      // Calculate maximum font size that fits with some padding
-      const availableHeight = textAreaHeight - 8; // 8px padding for better appearance
-      const maxFontSize = Math.floor(availableHeight / (lines.length * 1.2));
-      fontSize = Math.max(10, Math.min(fontSize, maxFontSize)); // Minimum 10px font
+    // If text doesn't fit, iteratively reduce font size until it fits
+    while (lines.length * lineHeight > textAreaHeight - 4 && fontSize > 8) {
+      fontSize = fontSize - 1;
       ctx.font = `bold ${fontSize}px ${getFontFamily(font)}`;
 
       // Re-wrap text with new font size
@@ -316,14 +313,15 @@ export default function BannerPreview({
       }
       if (newCurrentLine) newLines.push(newCurrentLine);
 
-      // Update lines with new wrapping
+      // Update lines and lineHeight
       lines.splice(0, lines.length, ...newLines);
+      lineHeight = fontSize * 1.2;
     }
 
     // Draw text background - full width at bottom
     const finalLineHeight = fontSize * 1.2;
     const totalTextHeight = lines.length * finalLineHeight;
-    // Increased height to 40px for better text fitting
+    // Increased height to 50px for better text fitting
     const backgroundHeight = textAreaHeight;
     const backgroundY = height - backgroundHeight;
     // Background with full width at bottom
