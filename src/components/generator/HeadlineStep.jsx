@@ -630,6 +630,72 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
             </motion.div>
           )}
 
+          {/* Real-time Banner Preview - только для стандартных шаблонов */}
+          {selectedHeadline && !isBrandedTemplate && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 mt-6"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Target className="w-5 h-5 text-purple-600" />
+                  Предпросмотр баннера
+                </h3>
+                <Badge variant="secondary" className="text-xs">
+                  Live Preview
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-gray-700">
+                    {config.size} - {config.template === 'blue_white' ? 'Синий стиль' : 'Красный стиль'}
+                  </div>
+                  <BannerPreview
+                    headline={editingIndex !== null ? editedHeadline : selectedHeadline}
+                    font={config.font || 'roboto'}
+                    template={config.template}
+                    size={config.size}
+                    className="w-full max-w-sm"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-gray-700">Детали предпросмотра</div>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex justify-between">
+                      <span>Заголовок:</span>
+                      <span className="font-medium">
+                        {(editingIndex !== null ? editedHeadline : selectedHeadline).length} символов
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Шрифт:</span>
+                      <span className="font-medium">{config.font || 'roboto'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Размер:</span>
+                      <span className="font-medium">{config.size}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Стиль:</span>
+                      <span className="font-medium">
+                        {config.template === 'blue_white' ? 'Деловой' : 'Энергичный'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-100">
+                    <p className="text-xs text-purple-700">
+                      💡 Это предварительный просмотр. Финальные баннеры будут созданы с уникальными AI-изображениями фона.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {/* Выбор варианта размещения текста - только для брендированного шаблона */}
           {selectedHeadline && isBrandedTemplate && (
             console.log('[HeadlineStep] Showing variant selection UI') || true) && (
