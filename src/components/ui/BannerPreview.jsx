@@ -209,6 +209,8 @@ export default function BannerPreview({
   };
 
   useEffect(() => {
+    alert(`ТЕСТ: BannerPreview с заголовком ${headline?.length || 0} символов`);
+    console.log('[BANNER_PREVIEW] Component render started with headline:', headline);
     if (!headline || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
