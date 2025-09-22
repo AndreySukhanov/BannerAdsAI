@@ -324,9 +324,6 @@ export default function BannerPreview({
     // Fixed height exactly 30px as in backend
     const backgroundHeight = textAreaHeight;
     const backgroundY = height - backgroundHeight;
-    // Position text in the middle of plaque
-    const textY = height - backgroundHeight * 0.5;
-    
     // Background with full width at bottom
     ctx.shadowColor = 'transparent';
     ctx.fillStyle = `${colors.background}ee`;
@@ -338,9 +335,14 @@ export default function BannerPreview({
     ctx.shadowColor = colors.shadow;
     ctx.fillStyle = colors.text;
     ctx.textAlign = 'center';
-    
+
+    // Calculate center of the plaque for text positioning
+    const plaqueCenterY = backgroundY + backgroundHeight / 2;
+    const totalTextHeight = lines.length * lineHeight;
+    const startY = plaqueCenterY - totalTextHeight / 2 + lineHeight / 2;
+
     lines.forEach((line, index) => {
-      const y = textY - (lines.length - 1) * lineHeight / 2 + index * lineHeight;
+      const y = startY + index * lineHeight;
       ctx.fillText(line, width / 2, y);
     });
 
