@@ -250,33 +250,33 @@ export default function BannerPreview({
     // Setup text rendering
     const textPadding = 6; // Minimal padding from edges for better text space
     const maxWidth = width - (textPadding * 2); // Full width minus minimal padding
-    const textAreaHeight = 50; // Further increased height for long headlines
-    
-    // Calculate font size based on text length and available space
-    // Improved formula for better text fitting with long headlines
-    let fontSize = Math.min(24, Math.max(10, Math.sqrt(maxWidth * 20 / headline.length)));
-    
+    const textAreaHeight = 60; // Maximum height for text area
+
+    // Start with smaller font size for long headlines
+    let fontSize = Math.min(16, Math.max(8, 150 / headline.length));
+
     // Set font
     ctx.font = `bold ${fontSize}px ${getFontFamily(font)}`;
     ctx.fillStyle = colors.text;
-    ctx.textAlign = 'left'; // Align left for better text distribution
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
+
     // Add text shadow
     ctx.shadowColor = colors.shadow;
     ctx.shadowBlur = 4;
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;
 
-    // Simple word wrapping without hyphenation
+    // Simple word wrapping - try to fit text in available space
     const words = headline.split(' ');
-    const lines = [];
+    let lines = [];
     let currentLine = '';
-    
+
+    // First pass - basic word wrapping
     for (const word of words) {
       const testLine = currentLine + (currentLine ? ' ' : '') + word;
       const metrics = ctx.measureText(testLine);
-      
+
       if (metrics.width > maxWidth && currentLine) {
         lines.push(currentLine);
         currentLine = word;
@@ -286,44 +286,39 @@ export default function BannerPreview({
     }
     if (currentLine) lines.push(currentLine);
 
-    // Adjust font size to fit in increased height plaque (50px)
-    const lineHeight = fontSize * 1.2;
-    const maxLines = Math.floor(textAreaHeight / lineHeight);
+    // Simple iterative font size reduction until text fits
+    let lineHeight = fontSize * 1.1; // Tighter line spacing
+    let totalHeight = lines.length * lineHeight;
 
-    // If text doesn't fit, iteratively reduce font size until it fits
-    while (lines.length * lineHeight > textAreaHeight - 4 && fontSize > 8) {
-      fontSize = fontSize - 1;
+    while (totalHeight > textAreaHeight - 10 && fontSize > 6) {
+      fontSize--;
       ctx.font = `bold ${fontSize}px ${getFontFamily(font)}`;
+      lineHeight = fontSize * 1.1;
 
-      // Re-wrap text with new font size
-      const newMaxWidth = width - (textPadding * 2);
-      const newLines = [];
-      let newCurrentLine = '';
+      // Re-wrap with new font size
+      lines = [];
+      currentLine = '';
 
       for (const word of words) {
-        const testLine = newCurrentLine + (newCurrentLine ? ' ' : '') + word;
+        const testLine = currentLine + (currentLine ? ' ' : '') + word;
         const metrics = ctx.measureText(testLine);
 
-        if (metrics.width > newMaxWidth && newCurrentLine) {
-          newLines.push(newCurrentLine);
-          newCurrentLine = word;
+        if (metrics.width > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
         } else {
-          newCurrentLine = testLine;
+          currentLine = testLine;
         }
       }
-      if (newCurrentLine) newLines.push(newCurrentLine);
+      if (currentLine) lines.push(currentLine);
 
-      // Update lines and lineHeight
-      lines.splice(0, lines.length, ...newLines);
-      lineHeight = fontSize * 1.2;
+      totalHeight = lines.length * lineHeight;
     }
 
     // Draw text background - full width at bottom
-    const finalLineHeight = fontSize * 1.2;
-    const totalTextHeight = lines.length * finalLineHeight;
-    // Increased height to 50px for better text fitting
     const backgroundHeight = textAreaHeight;
     const backgroundY = height - backgroundHeight;
+
     // Background with full width at bottom
     ctx.shadowColor = 'transparent';
     ctx.fillStyle = `${colors.background}ee`;
@@ -331,21 +326,19 @@ export default function BannerPreview({
     ctx.rect(0, backgroundY, width, backgroundHeight);
     ctx.fill();
 
-    // Draw text lines centered with proper text wrapping
+    // Draw text lines centered
     ctx.shadowColor = colors.shadow;
     ctx.fillStyle = colors.text;
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle'; // Ensure text is centered vertically on its Y position
+    ctx.textBaseline = 'middle';
 
-    // Calculate the exact center of the plaque
+    // Calculate center positioning
     const plaqueCenterY = backgroundY + (backgroundHeight / 2);
-
-    // For multiple lines, distribute them evenly around the center
-    const totalHeight = (lines.length - 1) * finalLineHeight;
-    const startY = plaqueCenterY - (totalHeight / 2);
+    const totalTextHeight = lines.length * lineHeight;
+    const startY = plaqueCenterY - (totalTextHeight / 2) + (lineHeight / 2);
 
     lines.forEach((line, index) => {
-      const y = startY + (index * finalLineHeight);
+      const y = startY + (index * lineHeight);
       ctx.fillText(line, width / 2, y);
     });
 
