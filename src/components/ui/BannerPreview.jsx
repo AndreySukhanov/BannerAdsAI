@@ -247,16 +247,42 @@ export default function BannerPreview({
       }
     }
 
-    // Setup text rendering
-    const textPadding = 6; // Minimal padding from edges for better text space
-    const maxWidth = width - (textPadding * 2); // Full width minus minimal padding
-    const textAreaHeight = 60; // Maximum 60px height for texts up to 100 characters
+    // Setup text rendering - оригинальный алгоритм (до брендовых шаблонов)
+    const textAreaHeight = 30; // Оригинальная высота плашки 30px
+    const maxWidth = width - 10; // Отступы по 5px с каждой стороны
 
-    // Optimized font size calculation for texts up to 100 chars
-    let fontSize = Math.min(12, Math.max(5, 100 / headline.length));
+    // Оригинальный простой алгоритм подбора размера шрифта
+    let fontSize = 18;
+    let lines = [];
 
-    // Set font
-    ctx.font = `bold ${fontSize}px ${getFontFamily(font)}`;
+    while (fontSize > 8) {
+      ctx.font = `bold ${fontSize}px ${getFontFamily(font)}`;
+      lines = [];
+      let currentLine = '';
+      const words = headline.split(' ');
+
+      for (const word of words) {
+        const testLine = currentLine + (currentLine ? ' ' : '') + word;
+        if (ctx.measureText(testLine).width > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      lines.push(currentLine);
+
+      const lineHeight = fontSize * 1.1;
+      const totalTextHeight = lines.length * lineHeight;
+
+      if (totalTextHeight <= textAreaHeight - 8) {
+        break;
+      }
+
+      fontSize--;
+    }
+
+    // Set final text properties
     ctx.fillStyle = colors.text;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -267,92 +293,24 @@ export default function BannerPreview({
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;
 
-    // Simple word wrapping - try to fit text in available space
-    const words = headline.split(' ');
-    let lines = [];
-    let currentLine = '';
-
-    // First pass - basic word wrapping
-    for (const word of words) {
-      const testLine = currentLine + (currentLine ? ' ' : '') + word;
-      const metrics = ctx.measureText(testLine);
-
-      if (metrics.width > maxWidth && currentLine) {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
-      }
-    }
-    if (currentLine) lines.push(currentLine);
-
-    // Force aggressive fitting for long texts
-    let lineHeight = fontSize * 1.05;
-    let totalHeight = lines.length * lineHeight;
-
-    // Debug info for long texts
-    if (headline.length > 80) {
-      console.log(`[DEBUG] Long text (${headline.length} chars): "${headline}"`);
-      console.log(`[DEBUG] Initial: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}, plaque=${textAreaHeight}`);
-    }
-
-    // More aggressive loop - ensure text ALWAYS fits
-    let iterations = 0;
-    while (totalHeight > textAreaHeight - 4 && fontSize > 3 && iterations < 20) {
-      fontSize--;
-      iterations++;
-      ctx.font = `bold ${fontSize}px ${getFontFamily(font)}`;
-      lineHeight = fontSize * 1.05;
-
-      // Re-wrap with new font size
-      lines = [];
-      currentLine = '';
-
-      for (const word of words) {
-        const testLine = currentLine + (currentLine ? ' ' : '') + word;
-        const metrics = ctx.measureText(testLine);
-
-        if (metrics.width > maxWidth && currentLine) {
-          lines.push(currentLine);
-          currentLine = word;
-        } else {
-          currentLine = testLine;
-        }
-      }
-      if (currentLine) lines.push(currentLine);
-
-      totalHeight = lines.length * lineHeight;
-
-      if (headline.length > 80 && iterations <= 5) {
-        console.log(`[DEBUG] Iteration ${iterations}: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}`);
-      }
-    }
-
-    if (headline.length > 80) {
-      console.log(`[DEBUG] Final: fontSize=${fontSize}, lines=${lines.length}, totalHeight=${totalHeight}, fits=${totalHeight <= textAreaHeight - 4}`);
-    }
-
-    // Draw text background - full width at bottom
+    // Draw text background - full width at bottom (30px)
     const backgroundHeight = textAreaHeight;
     const backgroundY = height - backgroundHeight;
 
-    // Background with full width at bottom
     ctx.shadowColor = 'transparent';
     ctx.fillStyle = `${colors.background}ee`;
-    ctx.beginPath();
-    ctx.rect(0, backgroundY, width, backgroundHeight);
-    ctx.fill();
+    ctx.fillRect(0, backgroundY, width, backgroundHeight);
 
-    // Draw text lines centered
+    // Draw text lines centered - оригинальный простой алгоритм
     ctx.shadowColor = colors.shadow;
     ctx.fillStyle = colors.text;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Calculate center positioning
-    const plaqueCenterY = backgroundY + (backgroundHeight / 2);
+    // Center text in the 30px plaque
+    const lineHeight = fontSize * 1.1;
     const totalTextHeight = lines.length * lineHeight;
-    const startY = plaqueCenterY - (totalTextHeight / 2) + (lineHeight / 2);
+    const startY = backgroundY + (backgroundHeight - totalTextHeight) / 2 + lineHeight / 2;
 
     lines.forEach((line, index) => {
       const y = startY + (index * lineHeight);

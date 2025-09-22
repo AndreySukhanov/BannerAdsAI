@@ -656,7 +656,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Алгоритм подбора оптимального размера шрифта под высоту плашки
+        // Оригинальный простой алгоритм подбора размера шрифта (до брендовых шаблонов)
         let fontSize = 18;
         const fontFace = '700 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         const maxWidth = width - 10;
@@ -670,44 +670,34 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
 
             for (const word of words) {
                 const testLine = currentLine ? `${currentLine} ${word}` : word;
-                const testWidth = ctx.measureText(testLine).width;
-
-                // Более строгая проверка ширины с запасом
-                if (testWidth > maxWidth * 0.95 && currentLine) {
+                if (ctx.measureText(testLine).width > maxWidth && currentLine) {
                     lines.push(currentLine);
                     currentLine = word;
                 } else {
                     currentLine = testLine;
                 }
             }
-            if (currentLine) {
-                lines.push(currentLine);
-            }
+            lines.push(currentLine);
 
             const lineHeight = fontSize * 1.1;
             const totalTextHeight = lines.length * lineHeight;
-            const maxLines = 3; // Ограничиваем количество строк для плашки
 
-            if (totalTextHeight <= textHeight - 8 && lines.length <= maxLines) {
+            if (totalTextHeight <= textHeight - 8) {
                 break;
             }
 
             fontSize--;
         }
 
+        // Центрирование текста в плашке
         const lineHeight = fontSize * 1.1;
-        // Центрируем текст по вертикали
-        const startY = imageHeight + (textHeight / 2) - ( (lines.length - 1) * lineHeight / 2 );
+        const totalTextHeight = lines.length * lineHeight;
+        const startY = imageHeight + (textHeight - totalTextHeight) / 2 + lineHeight / 2;
 
         lines.forEach((line, index) => {
             const y = startY + (index * lineHeight);
-
-            // Проверяем, что текст не выходит за границы плашки
-            if (y > imageHeight && y + fontSize <= height) {
-                // Без тени/обводки — только чистый текст
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(line, width / 2, y);
-            }
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(line, width / 2, y);
         });
 
         canvas.toBlob((blob) => {
