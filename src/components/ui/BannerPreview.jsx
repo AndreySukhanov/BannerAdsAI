@@ -324,8 +324,8 @@ export default function BannerPreview({
     // Fixed height exactly 30px as in backend
     const backgroundHeight = textAreaHeight;
     const backgroundY = height - backgroundHeight;
-    // Position text closer to bottom of plaque (75% down from top of plaque)
-    const textY = height - backgroundHeight * 0.25;
+    // Position text in the middle of plaque
+    const textY = height - backgroundHeight * 0.5;
     
     // Background with full width at bottom
     ctx.shadowColor = 'transparent';
