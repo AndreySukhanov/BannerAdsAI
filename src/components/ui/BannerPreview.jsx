@@ -250,10 +250,10 @@ export default function BannerPreview({
     // Setup text rendering
     const textPadding = 6; // Minimal padding from edges for better text space
     const maxWidth = width - (textPadding * 2); // Full width minus minimal padding
-    const textAreaHeight = 60; // Maximum height for text area
+    const textAreaHeight = 60; // Maximum 60px height for texts up to 100 characters
 
-    // Start with smaller font size for long headlines
-    let fontSize = Math.min(16, Math.max(8, 150 / headline.length));
+    // Optimized font size calculation for texts up to 100 chars
+    let fontSize = Math.min(12, Math.max(5, 100 / headline.length));
 
     // Set font
     ctx.font = `bold ${fontSize}px ${getFontFamily(font)}`;
@@ -286,14 +286,14 @@ export default function BannerPreview({
     }
     if (currentLine) lines.push(currentLine);
 
-    // Simple iterative font size reduction until text fits
-    let lineHeight = fontSize * 1.1; // Tighter line spacing
+    // Optimized font size reduction for texts up to 100 characters in 60px
+    let lineHeight = fontSize * 1.05; // Very tight line spacing for long texts
     let totalHeight = lines.length * lineHeight;
 
-    while (totalHeight > textAreaHeight - 10 && fontSize > 6) {
+    while (totalHeight > textAreaHeight - 6 && fontSize > 4) {
       fontSize--;
       ctx.font = `bold ${fontSize}px ${getFontFamily(font)}`;
-      lineHeight = fontSize * 1.1;
+      lineHeight = fontSize * 1.05;
 
       // Re-wrap with new font size
       lines = [];
