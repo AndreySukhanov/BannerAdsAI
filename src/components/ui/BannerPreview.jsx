@@ -336,13 +336,13 @@ export default function BannerPreview({
     ctx.fillStyle = colors.text;
     ctx.textAlign = 'center';
 
-    // Calculate center of the plaque for text positioning
+    // Simple vertical centering in the plaque
     const plaqueCenterY = backgroundY + backgroundHeight / 2;
-    const totalTextHeight = lines.length * lineHeight;
-    const startY = plaqueCenterY - totalTextHeight / 2 + lineHeight / 2;
 
     lines.forEach((line, index) => {
-      const y = startY + index * lineHeight;
+      // Calculate Y position for each line, centered around plaque center
+      const offsetFromCenter = (index - (lines.length - 1) / 2) * lineHeight;
+      const y = plaqueCenterY + offsetFromCenter;
       ctx.fillText(line, width / 2, y);
     });
 
