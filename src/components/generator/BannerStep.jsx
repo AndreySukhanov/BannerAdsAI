@@ -11,7 +11,6 @@ import { saveDownloadedBanner } from "@/api/history-client";
 import { ratingAPI } from "@/api/rating-client";
 import { Label } from "@/components/ui/label";
 import RatingModal from "@/components/ui/RatingModal";
-import BannerPreview from "@/components/ui/BannerPreview";
 
 // --- Утилиты для работы с цветом ---
 
@@ -1267,19 +1266,6 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                             onClick={(e) => handleZoomBanner(banner, index, e)}
                           />
 
-                          {/* Предпросмотр для blue_white/red_white */}
-                          {config.template !== 'branded' && config.selected_headline && (
-                            <div className="mt-2 p-2 bg-gray-50 rounded-lg">
-                              <p className="text-xs text-gray-600 mb-1">Предпросмотр текста:</p>
-                              <BannerPreview
-                                headline={config.selected_headline}
-                                template={config.template}
-                                size={config.size}
-                                className="w-full"
-                                style={{ maxHeight: '150px' }}
-                              />
-                            </div>
-                          )}
 
                           {/* Кнопка зума, появляется при наведении */}
                           <Button
