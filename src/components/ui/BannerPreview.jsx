@@ -335,14 +335,17 @@ export default function BannerPreview({
     ctx.shadowColor = colors.shadow;
     ctx.fillStyle = colors.text;
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle'; // Ensure text is centered vertically on its Y position
 
-    // Simple vertical centering in the plaque
-    const plaqueCenterY = backgroundY + backgroundHeight / 2;
+    // Calculate the exact center of the plaque
+    const plaqueCenterY = backgroundY + (backgroundHeight / 2);
+
+    // For multiple lines, distribute them evenly around the center
+    const totalHeight = (lines.length - 1) * lineHeight;
+    const startY = plaqueCenterY - (totalHeight / 2);
 
     lines.forEach((line, index) => {
-      // Calculate Y position for each line, centered around plaque center
-      const offsetFromCenter = (index - (lines.length - 1) / 2) * lineHeight;
-      const y = plaqueCenterY + offsetFromCenter;
+      const y = startY + (index * lineHeight);
       ctx.fillText(line, width / 2, y);
     });
 
