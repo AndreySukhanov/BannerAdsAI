@@ -1357,7 +1357,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                   <Button
                     onClick={onBack}
                     variant="outline"
-                    className="h-12 px-4 whitespace-nowrap"
+                    className="h-12 px-4 rounded-xl whitespace-nowrap"
                   >
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Назад
@@ -1377,7 +1377,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                     variant="outline"
                     onClick={() => setShowImageFeedback(!showImageFeedback)}
                     disabled={isGenerating || isRegeneratingImages || banners.length === 0}
-                    className="h-12 px-4 border-blue-300 text-blue-700 hover:bg-blue-50 whitespace-nowrap"
+                    className="h-12 px-4 rounded-xl border-blue-300 text-blue-700 hover:bg-blue-50 whitespace-nowrap"
                   >
                     <Target className="w-4 h-4 mr-2" />
                     Улучшить изображение
