@@ -635,61 +635,63 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-4 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 mt-6"
+              className="p-6 bg-gradient-to-br from-purple-50 via-white to-pink-50 rounded-xl border border-purple-200 shadow-sm mt-6"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                   <Target className="w-5 h-5 text-purple-600" />
                   Предпросмотр баннера
                 </h3>
-                <Badge variant="secondary" className="text-xs">
-                  Live Preview
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-gray-600">Live</span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-gray-700">
-                    {config.size} - {config.template === 'blue_white' ? 'Синий стиль' : 'Красный стиль'}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Banner Preview */}
+                <div className="lg:col-span-2 flex justify-center items-start">
+                  <div className="space-y-3">
+                    <div className="text-center">
+                      <span className="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                        {config.size} • {config.template === 'blue_white' ? 'Деловой стиль' : 'Энергичный стиль'}
+                      </span>
+                    </div>
+                    <BannerPreview
+                      headline={editingIndex !== null ? editedHeadline : selectedHeadline}
+                      font={config.font || 'roboto'}
+                      template={config.template}
+                      size={config.size}
+                      className="w-full max-w-sm"
+                    />
                   </div>
-                  <BannerPreview
-                    headline={editingIndex !== null ? editedHeadline : selectedHeadline}
-                    font={config.font || 'roboto'}
-                    template={config.template}
-                    size={config.size}
-                    className="w-full max-w-sm"
-                  />
                 </div>
 
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-gray-700">Детали предпросмотра</div>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex justify-between">
-                      <span>Заголовок:</span>
-                      <span className="font-medium">
-                        {(editingIndex !== null ? editedHeadline : selectedHeadline).length} символов
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Шрифт:</span>
-                      <span className="font-medium">{config.font || 'roboto'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Размер:</span>
-                      <span className="font-medium">{config.size}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Стиль:</span>
-                      <span className="font-medium">
-                        {config.template === 'blue_white' ? 'Деловой' : 'Энергичный'}
-                      </span>
+                {/* Info Panel */}
+                <div className="space-y-4">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-purple-100">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3">Параметры</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Длина текста:</span>
+                        <span className="font-medium text-gray-900">
+                          {(editingIndex !== null ? editedHeadline : selectedHeadline).length} симв.
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Шрифт:</span>
+                        <span className="font-medium text-gray-900 capitalize">{config.font || 'roboto'}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-100">
-                    <p className="text-xs text-purple-700">
-                      💡 Это предварительный просмотр. Финальные баннеры будут созданы с уникальными AI-изображениями фона.
-                    </p>
+                  <div className="bg-purple-50/80 backdrop-blur-sm rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-start gap-2">
+                      <div className="w-4 h-4 mt-0.5 text-purple-600">💡</div>
+                      <p className="text-xs text-purple-700 leading-relaxed">
+                        Финальные баннеры будут созданы с уникальными AI-изображениями
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
