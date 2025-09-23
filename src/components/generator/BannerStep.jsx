@@ -1353,11 +1353,11 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                 </AnimatePresence>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap gap-4">
+                <div className="flex gap-3">
                   <Button
                     onClick={onBack}
                     variant="outline"
-                    className="h-12 px-6"
+                    className="h-12 px-4 whitespace-nowrap"
                   >
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Назад
@@ -1367,7 +1367,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                     variant="outline"
                     onClick={generateBanners}
                     disabled={isGenerating || isRegeneratingImages}
-                    className="h-12 px-6 rounded-xl border-gray-200 hover:bg-gray-50"
+                    className="h-12 px-4 rounded-xl border-gray-200 hover:bg-gray-50 whitespace-nowrap"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Создать новые варианты
@@ -1377,7 +1377,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                     variant="outline"
                     onClick={() => setShowImageFeedback(!showImageFeedback)}
                     disabled={isGenerating || isRegeneratingImages || banners.length === 0}
-                    className="h-12 px-4 border-blue-300 text-blue-700 hover:bg-blue-50"
+                    className="h-12 px-4 border-blue-300 text-blue-700 hover:bg-blue-50 whitespace-nowrap"
                   >
                     <Target className="w-4 h-4 mr-2" />
                     Улучшить изображение
@@ -1385,7 +1385,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
 
                   <Button
                     onClick={downloadAllBanners}
-                    className="flex-1 min-w-fit brand-gradient hover:shadow-xl h-12 px-8 rounded-xl font-semibold smooth-transition"
+                    className="flex-1 brand-gradient hover:shadow-xl h-12 px-6 rounded-xl font-semibold smooth-transition whitespace-nowrap"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Скачать все баннеры
