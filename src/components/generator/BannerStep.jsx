@@ -1353,7 +1353,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                 </AnimatePresence>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="flex gap-3 justify-center">
                   <Button
                     onClick={onBack}
                     variant="outline"
