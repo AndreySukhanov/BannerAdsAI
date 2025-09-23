@@ -1353,7 +1353,7 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                 </AnimatePresence>
 
                 {/* Action Buttons */}
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-4">
                   <Button
                     onClick={onBack}
                     variant="outline"
@@ -1362,17 +1362,17 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Назад
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={generateBanners}
                     disabled={isGenerating || isRegeneratingImages}
-                    className="flex-1 flex items-center gap-2 h-12 px-6 rounded-xl border-gray-200 hover:bg-gray-50"
+                    className="h-12 px-6 rounded-xl border-gray-200 hover:bg-gray-50"
                   >
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="w-4 h-4 mr-2" />
                     Создать новые варианты
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={() => setShowImageFeedback(!showImageFeedback)}
@@ -1382,10 +1382,10 @@ export default function BannerStep({ config, setConfig, sessionId, initialConfig
                     <Target className="w-4 h-4 mr-2" />
                     Улучшить изображение
                   </Button>
-                  
+
                   <Button
                     onClick={downloadAllBanners}
-                    className="flex-1 brand-gradient hover:shadow-xl h-12 px-8 rounded-xl font-semibold smooth-transition"
+                    className="flex-1 min-w-fit brand-gradient hover:shadow-xl h-12 px-8 rounded-xl font-semibold smooth-transition"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Скачать все баннеры
