@@ -56,6 +56,7 @@ dotenv.config();
 console.log('🔧 Environment Variables:');
 console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'SET' : 'NOT SET');
 console.log('RECRAFT_API_KEY:', process.env.RECRAFT_API_KEY ? 'SET' : 'NOT SET');
+console.log('NEBIUS_API_KEY:', process.env.NEBIUS_API_KEY ? 'SET' : 'NOT SET');
 console.log('PORT:', process.env.PORT);
 
 const app = express();

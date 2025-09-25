@@ -621,6 +621,14 @@ export default function HeadlineStep({ config, setConfig, sessionId, onNext, onB
                       <div className="text-sm text-gray-500">Чистые геометрические формы</div>
                     </div>
                   </SelectItem>
+
+                  {/* Nebius AI Studio Models */}
+                  <SelectItem value="flux-schnell" className="p-4 rounded-lg">
+                    <div className="text-left">
+                      <div className="font-bold text-gray-900">Flux.1 Schnell</div>
+                      <div className="text-sm text-gray-500">Ультра-быстрая генерация</div>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
 

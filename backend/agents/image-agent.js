@@ -1,6 +1,7 @@
-// Image Agent - Specialized in generating images and visual content using Recraft.ai
+// Image Agent - Specialized in generating images and visual content using Recraft.ai and Nebius AI Studio
 import { callOpenAI } from '../utils/openai.js';
 import { callRecraftImageGeneration, optimizePromptForRecraft, RECRAFT_MODELS } from '../utils/recraft.js';
+import { callNebiusImageGeneration, optimizePromptForNebius, retryNebiusGeneration, NEBIUS_MODELS, createNebiusFallback } from '../utils/nebius.js';
 
 export class ImageAgent {
   constructor() {
@@ -24,12 +25,21 @@ export class ImageAgent {
       const imagePromises = imagePrompts.map(async (prompt, index) => {
         try {
           const enhancedPrompt = this.enhancePrompt(prompt);
-          const optimizedPrompt = optimizePromptForRecraft(enhancedPrompt, model);
-          
-          // Ensure prompt is exactly 1000 characters or less for Recraft.ai
-          let finalPrompt = optimizedPrompt;
-          if (finalPrompt.length > 1000) {
-            finalPrompt = optimizedPrompt.substring(0, 1000);
+
+          // Определяем провайдера и оптимизируем промпт соответственно
+          const isNebiusModel = Object.keys(NEBIUS_MODELS).includes(model);
+          let optimizedPrompt, finalPrompt;
+
+          if (isNebiusModel) {
+            optimizedPrompt = optimizePromptForNebius(enhancedPrompt, model);
+            finalPrompt = optimizedPrompt; // Nebius может обрабатывать длинные промпты
+          } else {
+            optimizedPrompt = optimizePromptForRecraft(enhancedPrompt, model);
+            // Ensure prompt is exactly 1000 characters or less for Recraft.ai
+            finalPrompt = optimizedPrompt;
+            if (finalPrompt.length > 1000) {
+              finalPrompt = optimizedPrompt.substring(0, 1000);
+            }
           }
             
           // Retry логика для повышения надежности
@@ -460,31 +470,47 @@ Return ${count} detailed photographic descriptions, one per line, numbered 1-${c
     return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
   }
 
-  // Retry механизм для генерации изображений
+  // Retry механизм для генерации изображений (поддерживает Recraft и Nebius)
   async retryImageGeneration(prompt, model, options, maxRetries = 3) {
     let lastError;
-    
+
+    // Определяем провайдера по модели
+    const isNebiusModel = Object.keys(NEBIUS_MODELS).includes(model);
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`[${this.name}] Image generation attempt ${attempt}/${maxRetries}`);
-        const result = await callRecraftImageGeneration(prompt, model, options);
+        console.log(`[${this.name}] Image generation attempt ${attempt}/${maxRetries} using ${isNebiusModel ? 'Nebius' : 'Recraft'}`);
+
+        let result;
+        if (isNebiusModel) {
+          result = await retryNebiusGeneration(prompt, model, options, 1); // 1 попытка в retryNebiusGeneration, общие попытки здесь
+        } else {
+          result = await callRecraftImageGeneration(prompt, model, options);
+        }
+
         return result;
       } catch (error) {
         lastError = error;
         console.warn(`[${this.name}] Attempt ${attempt} failed:`, error.message);
-        
+
         // Если ошибка не retryable или это последняя попытка - прекращаем
         if (!error.retryable || attempt === maxRetries) {
           break;
         }
-        
+
         // Экспоненциальная задержка между попытками
         const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
         console.log(`[${this.name}] Retrying in ${delayMs}ms...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
-    
+
+    // Если все попытки провалились, создаем fallback изображение
+    if (isNebiusModel) {
+      console.warn(`[${this.name}] Creating Nebius fallback after all retries failed`);
+      return createNebiusFallback(model);
+    }
+
     throw lastError;
   }
 }
